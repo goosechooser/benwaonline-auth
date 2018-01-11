@@ -41,11 +41,11 @@ Take aways
 if __name__ == '__main__':
     key = RSA.generate(2048)
 
-    priv = make_private(key, 'benwaauth')
-    pub = make_public(key, 'benwaauth')
+    priv = make_private(key, 'benwaonline_api_test')
+    pub = make_public(key, 'benwaonline_api_test')
     token = make_token(priv)
-    jwks = make_jwk(pub, 'benwaonline')
+    jwks = make_jwk(pub, 'benwaonline_api_test')
 
-    with open('jwks.json', 'w') as f:
+    with open('test_jwks.json', 'w') as f:
         json.dump(jwks, f)
 
