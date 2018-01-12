@@ -51,11 +51,9 @@ def init_clients(app, session):
         name='BenwaOnline',
         client_id=app.config['CLIENT_ID'],
         client_secret=app.config['CLIENT_SECRET'],
-        is_confidential=True,
-        blacklisted=False,
         response_type='code',
         _redirect_uris='http://127.0.0.1:5000/authorize/callback',
-        _default_scopes='ham eggs'
+        default_scopes='ham eggs'
     )
     session.add(client)
     session.commit()

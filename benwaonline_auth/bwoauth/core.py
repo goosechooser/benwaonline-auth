@@ -7,6 +7,7 @@ from oauthlib.common import generate_token
 
 from benwaonline_auth.database import db
 from benwaonline_auth.models import Client, Token, User
+from benwaonline_auth.schemas import UserSchema
 from benwaonline_auth.bwoauth import cache
 from benwaonline_auth.config import app_config
 
@@ -16,11 +17,12 @@ CFG = app_config[os.getenv('FLASK_CONFIG')]
 def generate_jwt_token(request):
     ''' Generates a JWT'''
     now = (datetime.utcnow() - datetime(1970, 1, 1))
-    exp_at = now + timedelta(seconds=300)
+    exp_at = now + timedelta(seconds=3600)
+
     claims = {
         'iss': CFG.ISSUER,
         'aud': CFG.API_AUDIENCE,
-        'sub': request.user.user_id,
+        'sub': request.user['user_id'],
         'iat': now.total_seconds(),
         'exp': exp_at.total_seconds()
     }
@@ -212,9 +214,8 @@ class BenwaValidator(RequestValidator):
             - Client Credentials grant
         """
 
-        user = User.query.get(request.user.user_id)
-
-        if user.refresh_token.is_expired:
+        user = User.query.get(request.user['user_id'])
+        if not user.refresh_token or user.refresh_token.is_expired:
             refresh_token = Token(
                 code=token['refresh_token'],
                 expires_in=CFG.REFRESH_TOKEN_LIFESPAN,
@@ -284,6 +285,6 @@ class BenwaValidator(RequestValidator):
             return False
 
         user = User.query.get(token.user_id)
-        request.user = user
+        request.user = UserSchema().dump(user).data
 
         return True
