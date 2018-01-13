@@ -23,10 +23,6 @@ install:
   - pip install -r requirements.txt
   - pip install .
 
-# before_script:
-#   - echo -e "benwaonlineauth_test\nwait_timeout=28800" | sudo tee -a /etc/mysql/my.cnf
-#   - sudo service mysql restart
-
 script:
   - pytest tests
 
