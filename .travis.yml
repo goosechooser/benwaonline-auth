@@ -13,7 +13,7 @@ services:
   - mysql
 
 before_install:
-  - mysql -u -root -e 'CREATE DATABASE benwaonlineauth_test;'
+  - mysql -u root -e 'CREATE DATABASE benwaonlineauth_test;'
   - mysql -u root -e "GRANT ALL PRIVILEGES ON mydb.* TO 'root'@'%';";
   - docker build -t goosechooser/benwaonline-auth:test .
   - docker run -d goosechooser/benwaonline-auth:test
