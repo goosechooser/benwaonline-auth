@@ -3,7 +3,8 @@
 *.db
 .pylintrc
 secrets.py
-*.pem
+benwaauth_priv.pem
+benwaauth_pub.pem
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

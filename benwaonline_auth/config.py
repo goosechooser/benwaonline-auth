@@ -24,8 +24,6 @@ class Config(object):
     TWITTER_CONSUMER_SECRET = os.getenv('TWITTER_CONSUMER_SECRET')
     ISSUER = 'issuer'
     API_AUDIENCE = 'api audience'
-    PRIVATE_KEY = get_pem('benwaauth_priv.pem')
-    PUBLIC_KEY = get_pem('benwaauth_pub.pem')
     REFRESH_TOKEN_LIFESPAN = timedelta(days=14)
 
 class DevConfig(Config):
@@ -33,11 +31,15 @@ class DevConfig(Config):
     DEBUG = True
     CLIENT_ID = 'nice'
     CLIENT_SECRET = 'ok'
+    PRIVATE_KEY = get_pem('benwaauth_priv.pem')
+    PUBLIC_KEY = get_pem('benwaauth_pub.pem')
 
 class TestConfig(Config):
     SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:root@localhost:3306/benwaonlineauth_test'
     TESTING = True
     WTF_CSRF_ENABLED = False
+    PRIVATE_KEY = get_pem('tests/data/benwaonline_auth_test_priv.pem')
+    PUBLIC_KEY = get_pem('tests/data/benwaonline_auth_test_pub.pem')
 
 class ProdConfig(Config):
     DB_BASE_URI = 'mysql+pymysql://{}:{}@{}:{}/'.format(
@@ -53,6 +55,8 @@ class ProdConfig(Config):
     SECRET_KEY = os.getenv('SECRET_KEY_AUTH')
     CLIENT_ID = os.getenv('BENWA_CONSUMER_KEY')
     CLIENT_SECRET = os.getenv('BENWA_SECRET_KEY')
+    PRIVATE_KEY = get_pem('benwaauth_priv.pem')
+    PUBLIC_KEY = get_pem('benwaauth_pub.pem')
 
 app_config = {
     'dev': DevConfig,
