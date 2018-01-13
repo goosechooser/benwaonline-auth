@@ -1,4 +1,4 @@
-FROM goosechooser/benwaonline-base:0.0
+FROM goosechooser/benwaonline-auth-base:0.0
 
 RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app
