@@ -1,6 +1,5 @@
 import os
-from datetime import datetime, timedelta
-from Cryptodome.PublicKey import RSA
+from datetime import timedelta
 
 BASE = os.path.abspath(os.path.dirname(__file__))
 
@@ -51,7 +50,9 @@ class ProdConfig(Config):
     DEBUG = False
     ISSUER = 'https://benwa.online'
     API_AUDIENCE = 'https://benwa.online/api'
-
+    SECRET_KEY = os.getenv('SECRET_KEY_AUTH')
+    CLIENT_ID = os.getenv('BENWA_CONSUMER_KEY')
+    CLIENT_SECRET = os.getenv('BENWA_SECRET_KEY')
 
 app_config = {
     'dev': DevConfig,
