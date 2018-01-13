@@ -73,8 +73,8 @@ def init_tokens(session):
 
     expired = models.Token(
         code='expired',
-        expires_in=timedelta(seconds=1),
-        is_expired='True',
+        expires_in=timedelta(microseconds=1),
+        is_expired=True,
         user_id='420',
         client_id='test_id',
         scopes='ham test'
