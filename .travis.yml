@@ -13,7 +13,6 @@ services:
   - mysql
 
 before_install:
-  - mysql -u root --password=""
   - mysql -e 'CREATE DATABASE benwaonlineauth_test;'
   - docker build -t goosechooser/benwaonline-auth:test .
   - docker run -d goosechooser/benwaonline-auth:test
