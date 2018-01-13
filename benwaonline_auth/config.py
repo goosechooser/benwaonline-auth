@@ -4,8 +4,11 @@ from datetime import timedelta
 BASE = os.path.abspath(os.path.dirname(__file__))
 
 def get_pem(fname):
-    with open(fname, 'r') as f:
-        return f.read()
+    try:
+        with open(fname, 'r') as f:
+            return f.read()
+    except FileNotFoundError:
+        return None
 
 def get_secret(secret_name):
     '''Returns value provided by a docker secret, otherwise returns env'''
