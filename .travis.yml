@@ -12,7 +12,7 @@ services:
   - docker
 
 before_install:
-  - docker build -t goosechooser/benwaonline-auth:test
+  - docker build -t goosechooser/benwaonline-auth:test .
   - docker run -d
   - docker ps -a
   - docker r
