@@ -1,4 +1,4 @@
-FROM python:3.6
+FROM goosechooser-benwaonline-base:0.0
 
 RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app

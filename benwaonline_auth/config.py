@@ -42,7 +42,7 @@ class TestConfig(Config):
         os.getenv('MYSQL_USER', 'root'),
         os.getenv('MYSQL_PASSWORD', ''),
         os.getenv('MYSQL_HOST', '127.0.0.1'),
-        os.getenv('MYSQL_PORT')
+        os.getenv('MYSQL_PORT', '3306')
     )
 
     SQLALCHEMY_DATABASE_URI = SQLALCHEMY_DATABASE_URI = DB_BASE_URI + 'benwaonlineauth_test'
