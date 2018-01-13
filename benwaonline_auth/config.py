@@ -38,7 +38,15 @@ class DevConfig(Config):
     PUBLIC_KEY = get_pem('benwaauth_pub.pem')
 
 class TestConfig(Config):
-    SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:root@localhost:3306/benwaonlineauth_test'
+    DB_BASE_URI = 'mysql+pymysql://{}:{}@{}:{}/'.format(
+        os.getenv('MYSQL_USER', 'root'),
+        os.getenv('MYSQL_PASSWORD', ''),
+        os.getenv('MYSQL_HOST', '127.0.0.1'),
+        os.getenv('MYSQL_PORT')
+    )
+
+    SQLALCHEMY_DATABASE_URI = SQLALCHEMY_DATABASE_URI = DB_BASE_URI + 'benwaonlineauth_test'
+
     TESTING = True
     WTF_CSRF_ENABLED = False
     PRIVATE_KEY = get_pem('tests/data/benwaonline_auth_test_priv.pem')
