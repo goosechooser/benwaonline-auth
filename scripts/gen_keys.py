@@ -23,7 +23,6 @@ def make_token(key):
 
 def make_jwk(key, kid):
     jwks = jwk.construct(key, 'RS256').to_dict()
-    pprint(jwks)
     jwks['e'] = jwks['e'].decode('utf-8')
     jwks['n'] = jwks['n'].decode('utf-8')
     jwks['use'] = 'sig'
@@ -39,13 +38,17 @@ Take aways
 '''
 
 if __name__ == '__main__':
+    import sys
+    fname = sys.argv[1]
+    if not fname:
+        print('needs a file name')
+        exit(1)
+
     key = RSA.generate(2048)
 
-    priv = make_private(key, 'benwaonline_api_test')
-    pub = make_public(key, 'benwaonline_api_test')
-    token = make_token(priv)
-    jwks = make_jwk(pub, 'benwaonline_api_test')
+    priv = make_private(key, fname)
+    pub = make_public(key, fname)
+    jwks = make_jwk(pub, fname)
 
-    with open('test_jwks.json', 'w') as f:
+    with open(fname + '_jwks.json', 'w') as f:
         json.dump(jwks, f)
-
