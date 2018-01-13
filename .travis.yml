@@ -10,8 +10,11 @@ env:
 
 services:
   - docker
+  - mysql
 
 before_install:
+  - mysql -u root --password=""
+  - mysql -e 'CREATE DATABASE benwaonlineauth_test;'
   - docker build -t goosechooser/benwaonline-auth:test .
   - docker run -d goosechooser/benwaonline-auth:test
   - docker ps -a
@@ -19,6 +22,10 @@ before_install:
 install:
   - pip install -r requirements.txt
   - pip install .
+
+before_script:
+  - echo -e "benwaonlineauth_test\nwait_timeout=28800" | sudo tee -a /etc/mysql/my.cnf
+  - sudo service mysql restart
 
 script:
   - pytest tests
