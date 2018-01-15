@@ -46,7 +46,7 @@ class TestConfig(Config):
     )
 
     SQLALCHEMY_DATABASE_URI = SQLALCHEMY_DATABASE_URI = DB_BASE_URI + 'benwaonlineauth_test'
-
+    AUTH_URL_BASE = os.getenv('AUTH_URL_BASE')
     TESTING = True
     WTF_CSRF_ENABLED = False
     PRIVATE_KEY = get_pem('tests/data/benwaonline_auth_test_priv.pem')
@@ -63,6 +63,7 @@ class ProdConfig(Config):
     DEBUG = False
     ISSUER = 'https://benwa.online'
     API_AUDIENCE = 'https://benwa.online/api'
+    AUTH_URL_BASE = os.getenv('AUTH_URL_BASE')
     SECRET_KEY = os.getenv('SECRET_KEY_AUTH')
     CLIENT_ID = os.getenv('BENWA_CONSUMER_KEY')
     CLIENT_SECRET = os.getenv('BENWA_SECRET_KEY')

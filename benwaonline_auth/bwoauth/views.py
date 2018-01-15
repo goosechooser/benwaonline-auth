@@ -1,3 +1,4 @@
+import os
 from flask import request, url_for, session, redirect, make_response
 from oauthlib.oauth2.rfc6749 import errors
 from oauthlib.oauth2 import WebApplicationServer
@@ -8,7 +9,9 @@ from benwaonline_auth.schemas import UserSchema
 from benwaonline_auth.oauth import twitter
 from benwaonline_auth.bwoauth import auth
 from benwaonline_auth.bwoauth.core import BenwaValidator, generate_jwt_token, generate_refresh_token
+from benwaonline_auth.config import app_config
 
+cfg = app_config[os.getenv('FLASK_CONFIG')]
 validator = BenwaValidator()
 server = WebApplicationServer(
     validator,
@@ -60,7 +63,7 @@ def authorize():
 @auth.route('/authorize-twitter')
 def authorize_twitter():
     '''Directs user to twitter authorization page.'''
-    callback_url = url_for('auth.authorize_twitter_callback', next=request.args.get('next'))
+    callback_url = cfg.AUTH_URL_BASE + url_for('auth.authorize_twitter_callback', next=request.args.get('next'))
     return twitter.authorize(callback=callback_url)
 
 @auth.route('/authorize-twitter/callback')
