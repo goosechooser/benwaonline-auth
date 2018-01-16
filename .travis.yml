@@ -6,7 +6,7 @@ python:
   - "3.5"
 
 env:
-  - FLASK_CONFIG=test
+  - FLASK_CONFIG=travis
 
 services:
   - docker
