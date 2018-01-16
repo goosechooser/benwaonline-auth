@@ -1,5 +1,9 @@
 import os
-from flask import request, url_for, session, redirect, make_response
+
+from flask import (
+    request, url_for, session, redirect,
+    make_response, current_app
+)
 from oauthlib.oauth2.rfc6749 import errors
 from oauthlib.oauth2 import WebApplicationServer
 
@@ -23,6 +27,7 @@ server = WebApplicationServer(
 def handle_invalid_usage(error):
     '''Error handler.'''
     response = error.json
+    current_app.logger.debug(request, response)
     return response, 500
 
 def extract_params(request):
@@ -58,6 +63,7 @@ def authorize():
 
     # Errors embedded in the redirect URI back to the client
     except errors.OAuth2Error as err:
+        current_app.logger.debug(err)
         return redirect(err.in_uri(err.redirect_uri))
 
 @auth.route('/authorize-twitter')
@@ -79,6 +85,7 @@ def authorize_twitter_callback():
     '''
     resp = twitter.authorized_response()
     if not resp:
+        current_app.logger.debug('No authorized response from twitter')
         redirect_uri = session['redirect_uri']
         session.clear()
         return redirect(redirect_uri)
@@ -104,6 +111,7 @@ def authorize_twitter_callback():
 
     # Errors embedded in the redirect URI back to the client
     except errors.OAuth2Error as err:
+        current_app.logger.debug(err)
         return redirect(err.in_uri(err.redirect_uri))
 
 @auth.route('/oauth/token', methods=['POST'])
@@ -120,6 +128,7 @@ def issue_token():
 
     # Errors embedded in the redirect URI back to the client
     except errors.OAuth2Error as err:
+        current_app.logger.debug(err)
         return redirect(err.in_uri(err.redirect_uri))
 
 # @auth.route('/oauth/revoke', methods=['POST'])

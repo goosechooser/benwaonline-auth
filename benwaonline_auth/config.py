@@ -34,18 +34,28 @@ class DevConfig(Config):
     DEBUG = True
     CLIENT_ID = 'nice'
     CLIENT_SECRET = 'ok'
+    AUTH_URL_BASE = os.getenv('AUTH_URL_BASE', 'http://127.0.0.1:5002')
     PRIVATE_KEY = get_pem('benwaauth_priv.pem')
     PUBLIC_KEY = get_pem('benwaauth_pub.pem')
 
 class TestConfig(Config):
     DB_BASE_URI = 'mysql+pymysql://{}:{}@{}:{}/'.format(
         os.getenv('MYSQL_USER', 'root'),
-        os.getenv('MYSQL_PASSWORD', ''),
+        os.getenv('MYSQL_PASSWORD', 'root'),
         os.getenv('MYSQL_HOST', '127.0.0.1'),
         os.getenv('MYSQL_PORT', '3306')
     )
 
-    SQLALCHEMY_DATABASE_URI = SQLALCHEMY_DATABASE_URI = DB_BASE_URI + 'benwaonlineauth_test'
+    SQLALCHEMY_DATABASE_URI = DB_BASE_URI + 'benwaonlineauth_test'
+    AUTH_URL_BASE = os.getenv('AUTH_URL_BASE')
+    TESTING = True
+    WTF_CSRF_ENABLED = False
+    PRIVATE_KEY = get_pem('tests/data/benwaonline_auth_test_priv.pem')
+    PUBLIC_KEY = get_pem('tests/data/benwaonline_auth_test_pub.pem')
+
+class TravisTestConfig(TestConfig):
+    DB_BASE_URI = 'mysql+pymysql://{}:{}@{}:{}/'.format('root', '', '127.0.0.1', '3306')
+    SQLALCHEMY_DATABASE_URI = DB_BASE_URI + 'benwaonlineauth_test'
     AUTH_URL_BASE = os.getenv('AUTH_URL_BASE')
     TESTING = True
     WTF_CSRF_ENABLED = False
@@ -65,13 +75,12 @@ class ProdConfig(Config):
     API_AUDIENCE = 'https://benwa.online/api'
     AUTH_URL_BASE = os.getenv('AUTH_URL_BASE')
     SECRET_KEY = os.getenv('SECRET_KEY_AUTH')
-    CLIENT_ID = os.getenv('BENWA_CONSUMER_KEY')
-    CLIENT_SECRET = os.getenv('BENWA_SECRET_KEY')
     PRIVATE_KEY = get_pem('benwaauth_priv.pem')
     PUBLIC_KEY = get_pem('benwaauth_pub.pem')
 
 app_config = {
     'dev': DevConfig,
     'test': TestConfig,
+    'travis': TravisTestConfig,
     'prod': ProdConfig
 }

@@ -2,6 +2,7 @@
 import os
 from datetime import datetime, timedelta
 from jose import jwt
+from flask import logging, current_app
 from oauthlib.oauth2.rfc6749.request_validator import RequestValidator
 from oauthlib.common import generate_token
 
@@ -12,7 +13,6 @@ from benwaonline_auth.bwoauth import cache
 from benwaonline_auth.config import app_config
 
 CFG = app_config[os.getenv('FLASK_CONFIG')]
-
 
 def generate_jwt_token(request):
     ''' Generates a JWT'''
@@ -51,6 +51,7 @@ class BenwaValidator(RequestValidator):
         '''
         client = Client.query.get(client_id)
         if not client or client.blacklisted:
+            current_app.logger.info('Unauthorized client request attempt')
             return False
 
         request.client = client
@@ -130,7 +131,8 @@ class BenwaValidator(RequestValidator):
         # Request didn't include 'client_id'
         try:
             client = Client.query.get(request.client_id)
-        except TypeError:
+        except TypeError as err:
+            current_app.logger.error('Request did not include a client_id', request, err)
             return False
 
         # Didn't find client in db
@@ -216,6 +218,7 @@ class BenwaValidator(RequestValidator):
 
         user = User.query.get(request.user['user_id'])
         if not user.refresh_token or user.refresh_token.is_expired:
+            current_app.logger.info('Creating new refresh token for user', user.user_id)
             refresh_token = Token(
                 code=token['refresh_token'],
                 expires_in=CFG.REFRESH_TOKEN_LIFESPAN,
@@ -279,9 +282,11 @@ class BenwaValidator(RequestValidator):
             return False
 
         if not token:
+            current_app.logger.debug('Token not found')
             return False
 
         if token.client_id != client.client_id:
+            current_app.logger.debug('Client_id in token does not match the client\'s registered id')
             return False
 
         user = User.query.get(token.user_id)
