@@ -115,6 +115,8 @@ class BenwaValidator(RequestValidator):
             'user': request.user
         }
         cache.set(code['code'], associations, timeout=5*60)
+        msg = 'Saved {} in the cache'.format(code['code'])
+        current_app.logger.debug(msg)
         return
 
     # Token request
@@ -169,9 +171,11 @@ class BenwaValidator(RequestValidator):
         Returns:
             True if the code belongs to the client, False otherwise
         '''
-
         cached = cache.get(code)
+        if not cached:
+            current_app.logger.debug('Something went wrong with the cache')
         if cached['client_id'] != client_id:
+            current_app.logger.debug('The client_id saved with this code does not match the client_id in the request')
             return False
 
         request.scopes = cached['scopes']
