@@ -133,26 +133,26 @@ class BenwaValidator(RequestValidator):
             client = Client.query.get(request.client_id)
         except TypeError as err:
             msg = 'Request did not include a client_id'
-            current_app.logger.debug(msg)
+            current_app.logger.error(msg)
             return False
 
         # Didn't find client in db
         if not client:
             msg = 'Supplied client_id {} was not found'.format(request.client_id)
-            current_app.logger.debug(msg)
+            current_app.logger.error(msg)
             return False
 
         is_allowed = True if not client.blacklisted and client.is_confidential else False
         if not is_allowed:
             msg = 'Client {} has been blacklisted or is public'.format(request.client_id)
-            current_app.logger.debug(msg)
+            current_app.logger.error(msg)
 
         if is_allowed and request.client_secret == client.client_secret:
             request.client = client
             return True
 
         msg = 'Secret for Client {} is incorrect'.format(request.client_id)
-        current_app.logger.debug(msg)
+        current_app.logger.error(msg)
         return False
 
     def authenticate_client_id(self, client_id, request, *args, **kwargs):
