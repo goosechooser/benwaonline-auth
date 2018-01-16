@@ -41,21 +41,12 @@ class DevConfig(Config):
 class TestConfig(Config):
     DB_BASE_URI = 'mysql+pymysql://{}:{}@{}:{}/'.format(
         os.getenv('MYSQL_USER', 'root'),
-        os.getenv('MYSQL_PASSWORD', 'root'),
+        os.getenv('MYSQL_PASSWORD', ''),
         os.getenv('MYSQL_HOST', '127.0.0.1'),
         os.getenv('MYSQL_PORT', '3306')
     )
 
-    SQLALCHEMY_DATABASE_URI = DB_BASE_URI + 'benwaonlineauth_test'
-    AUTH_URL_BASE = os.getenv('AUTH_URL_BASE')
-    TESTING = True
-    WTF_CSRF_ENABLED = False
-    PRIVATE_KEY = get_pem('tests/data/benwaonline_auth_test_priv.pem')
-    PUBLIC_KEY = get_pem('tests/data/benwaonline_auth_test_pub.pem')
-
-class TravisTestConfig(TestConfig):
-    DB_BASE_URI = 'mysql+pymysql://{}:{}@{}:{}/'.format('root', '', '127.0.0.1', '3306')
-    SQLALCHEMY_DATABASE_URI = DB_BASE_URI + 'benwaonlineauth_test'
+    SQLALCHEMY_DATABASE_URI = SQLALCHEMY_DATABASE_URI = DB_BASE_URI + 'benwaonlineauth_test'
     AUTH_URL_BASE = os.getenv('AUTH_URL_BASE')
     TESTING = True
     WTF_CSRF_ENABLED = False
@@ -81,6 +72,5 @@ class ProdConfig(Config):
 app_config = {
     'dev': DevConfig,
     'test': TestConfig,
-    'travis': TravisTestConfig,
     'prod': ProdConfig
 }

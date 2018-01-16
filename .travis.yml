@@ -6,7 +6,7 @@ python:
   - "3.5"
 
 env:
-  - FLASK_CONFIG=travis
+  - FLASK_CONFIG=test
 
 services:
   - docker
@@ -29,5 +29,5 @@ script:
 after_success:
   - if [ "$TRAVIS_BRANCH" == "master" ]; then
     docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
-    docker push "$DOCKER_USERNAME"/benwaonline-auth;
+    docker push "$DOCKER_USERNAME"/benwaonline-auth:latest;
     fi

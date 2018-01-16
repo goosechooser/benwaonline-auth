@@ -15,6 +15,10 @@ with open('jwks.json', 'r') as f:
 
 def setup_logger_handlers(logger):
     fh = logging.FileHandler(__name__ +'_debug.log')
+    fh.setFormatter(logging.Formatter(
+    '%(asctime)s %(levelname)s: %(message)s '
+    '[in %(pathname)s:%(lineno)d]'
+    ))
     fh.setLevel(logging.DEBUG)
     logger.addHandler(fh)
 
