@@ -64,7 +64,8 @@ def authorize():
 
     # Errors embedded in the redirect URI back to the client
     except errors.OAuth2Error as err:
-        current_app.logger.debug(err)
+        msg = 'uri: {}\nhttp_method: {}\nbody:{}'.format(uri, http_method, json.dumps(body))
+        current_app.logger.debug(msg)
         return redirect(err.in_uri(err.redirect_uri))
 
 @auth.route('/authorize-twitter')
@@ -105,7 +106,6 @@ def authorize_twitter_callback():
     try:
         headers, body, status = server.create_authorization_response(
             uri, http_method, body, headers, None, session['credentials'])
-        print('headers', headers['Location'])
     except errors.FatalClientError as err:
         msg = 'uri: {}\nhttp_method: {}\nbody:{}'.format(uri, http_method, json.dumps(body))
         current_app.logger.debug(msg)
@@ -113,7 +113,8 @@ def authorize_twitter_callback():
 
     # Errors embedded in the redirect URI back to the client
     except errors.OAuth2Error as err:
-        current_app.logger.debug(err)
+        msg = 'uri: {}\nhttp_method: {}\nbody:{}'.format(uri, http_method, json.dumps(body))
+        current_app.logger.debug(msg)
         return redirect(err.in_uri(err.redirect_uri))
 
     return redirect(headers['Location'])
@@ -134,7 +135,8 @@ def issue_token():
 
     # Errors embedded in the redirect URI back to the client
     except errors.OAuth2Error as err:
-        current_app.logger.debug(err)
+        msg = 'uri: {}\nhttp_method: {}\nbody:{}'.format(uri, http_method, json.dumps(body))
+        current_app.logger.debug(msg)
         return redirect(err.in_uri(err.redirect_uri))
 
 # @auth.route('/oauth/revoke', methods=['POST'])

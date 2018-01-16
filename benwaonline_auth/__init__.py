@@ -1,3 +1,4 @@
+import sys
 import json
 import logging
 from marshmallow import pprint
@@ -14,6 +15,8 @@ with open('jwks.json', 'r') as f:
     JWKS = json.load(f)
 
 def setup_logger_handlers(loggers):
+    sh = logging.StreamHandler(sys.stdout)
+    sh.setLevel(logging.DEBUG)
     fh = logging.FileHandler(__name__ +'_debug.log')
     fh.setFormatter(logging.Formatter(
         '%(asctime)s %(levelname)s: %(message)s '
@@ -22,6 +25,7 @@ def setup_logger_handlers(loggers):
     fh.setLevel(logging.DEBUG)
     for logger in loggers:
         logger.addHandler(fh)
+        logger.addHandler(sh)
 
     return
 
