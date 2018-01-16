@@ -13,21 +13,24 @@ from benwaonline_auth import models
 with open('jwks.json', 'r') as f:
     JWKS = json.load(f)
 
-def setup_logger_handlers(logger):
+def setup_logger_handlers(loggers):
     fh = logging.FileHandler(__name__ +'_debug.log')
     fh.setFormatter(logging.Formatter(
-    '%(asctime)s %(levelname)s: %(message)s '
-    '[in %(pathname)s:%(lineno)d]'
+        '%(asctime)s %(levelname)s: %(message)s '
+        '[in %(pathname)s:%(lineno)d]'
     ))
     fh.setLevel(logging.DEBUG)
-    logger.addHandler(fh)
+    for logger in loggers:
+        logger.addHandler(fh)
+
+    return
 
 def create_app(config_name=None):
     """
     Returns the Flask app.
     """
     app = Flask(__name__)
-    setup_logger_handlers(app.logger)
+    setup_logger_handlers([app.logger, logging.getLogger('oauthlib')])
     app.config.from_object(app_config[config_name])
 
     db.init_app(app)
