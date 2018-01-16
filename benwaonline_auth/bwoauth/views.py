@@ -51,8 +51,7 @@ def authorize():
             uri, http_method, body, headers)
 
         # Need to examine more carefully and decide what I do/don't need
-        session['credentials'] = credentials['request']._params
-        session['credentials']['scopes'] = scopes
+        session['credentials'] = credentials['request'].body
         # request was valid so now we move them to twitter to authenticate
         return redirect(url_for('auth.authorize_twitter'))
 
