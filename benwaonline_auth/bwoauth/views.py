@@ -1,5 +1,5 @@
 import os
-
+import json
 from flask import (
     request, url_for, session, redirect,
     make_response, current_app
@@ -27,7 +27,6 @@ server = WebApplicationServer(
 def handle_invalid_usage(error):
     '''Error handler.'''
     response = error.json
-    current_app.logger.debug(request, response)
     return response, 500
 
 def extract_params(request):
@@ -59,6 +58,8 @@ def authorize():
 
     # Errors that should be shown to the user on the provider website
     except errors.FatalClientError as err:
+        msg = 'uri: {}\nhttp_method: {}\nbody:{}'.format(uri, http_method, json.dumps(body))
+        current_app.logger.debug(msg)
         raise err
 
     # Errors embedded in the redirect URI back to the client
@@ -104,15 +105,18 @@ def authorize_twitter_callback():
     try:
         headers, body, status = server.create_authorization_response(
             uri, http_method, body, headers, None, session['credentials'])
-        return redirect(headers['Location'])
-
+        print('headers', headers['Location'])
     except errors.FatalClientError as err:
+        msg = 'uri: {}\nhttp_method: {}\nbody:{}'.format(uri, http_method, json.dumps(body))
+        current_app.logger.debug(msg)
         raise err
 
     # Errors embedded in the redirect URI back to the client
     except errors.OAuth2Error as err:
         current_app.logger.debug(err)
         return redirect(err.in_uri(err.redirect_uri))
+
+    return redirect(headers['Location'])
 
 @auth.route('/oauth/token', methods=['POST'])
 def issue_token():
@@ -124,6 +128,8 @@ def issue_token():
 
     # Errors that should be shown to the user on the provider website
     except errors.FatalClientError as err:
+        msg = 'uri: {}\nhttp_method: {}\nbody:{}'.format(uri, http_method, json.dumps(body))
+        current_app.logger.debug(msg)
         raise err
 
     # Errors embedded in the redirect URI back to the client
