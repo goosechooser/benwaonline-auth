@@ -104,7 +104,6 @@ class BenwaValidator(RequestValidator):
 
 
     # Post-authorization
-
     def save_authorization_code(self, client_id, code, request, *args, **kwargs):
         '''Saves the authorization code and any other pertinent attributes.'''
         associations = {
@@ -114,7 +113,7 @@ class BenwaValidator(RequestValidator):
             'state': request.state,
             'user': request.user
         }
-        cache.set(code['code'], associations, timeout=5*60)
+        cache.set(code['code'], associations, expire=5*60)
         msg = 'Saved {} in the cache'.format(code['code'])
         current_app.logger.debug(msg)
         return

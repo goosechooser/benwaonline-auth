@@ -28,6 +28,8 @@ class Config(object):
     ISSUER = 'issuer'
     API_AUDIENCE = 'api audience'
     REFRESH_TOKEN_LIFESPAN = timedelta(days=14)
+    MEMCACHED_HOST = os.getenv('MEMCACHED_HOST', '192.168.99.100')
+    MEMCACHED_PORT = int(os.getenv('MEMCACHED_PORT', 11211))
 
 class DevConfig(Config):
     SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:root@localhost:3306/benwaonlineauth'
