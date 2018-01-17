@@ -230,7 +230,7 @@ class BenwaValidator(RequestValidator):
 
         user = User.query.get(request.user['user_id'])
         if not user.refresh_token or user.refresh_token.is_expired:
-            current_app.logger.info('Creating new refresh token for user', user.user_id)
+            current_app.logger.info('Creating new refresh token for user'.format(user.user_id))
             refresh_token = Token(
                 code=token['refresh_token'],
                 expires_in=CFG.REFRESH_TOKEN_LIFESPAN,
