@@ -6,8 +6,9 @@ python:
   - "3.5"
 
 env:
-  - FLASK_CONFIG=test
-  - MEMCACHED_HOST=localhost
+  global:
+    - FLASK_CONFIG=test
+    - MEMCACHED_HOST=localhost
 
 services:
   - docker
