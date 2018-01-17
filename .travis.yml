@@ -7,10 +7,12 @@ python:
 
 env:
   - FLASK_CONFIG=test
+  - MEMCACHED_HOST=localhost
 
 services:
   - docker
   - mysql
+  - memcached
 
 before_install:
   - mysql -u root -e 'CREATE DATABASE benwaonlineauth_test;'
