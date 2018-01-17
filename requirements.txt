@@ -1,7 +1,6 @@
 asn1crypto==0.24.0
 astroid==1.6.0
 attrs==17.3.0
--e git+git@github.com:goosechooser/benwaonline-auth.git@47af7b783f5676a2f88ca242ebb253535dbe33ac#egg=benwaonlineauth
 certifi==2017.11.5
 cffi==1.11.2
 chardet==3.0.4
