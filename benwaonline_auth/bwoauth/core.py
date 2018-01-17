@@ -64,6 +64,8 @@ class BenwaValidator(RequestValidator):
         Returns:
             True if the redirect_uri in the request is allowed, False otherwise
         '''
+        msg = 'Supplied uri: {}\nUri stored in request: {}'.format(redirect_uri, request.client.redirect_uris)
+        current_app.logger.debug(msg)
         return False if redirect_uri not in request.client.redirect_uris else True
 
     def get_default_redirect_uri(self, client_id, request, *args, **kwargs):
@@ -192,6 +194,8 @@ class BenwaValidator(RequestValidator):
         # Clients should only be allowed to use one type of grant.
         # In this case, it must be "authorization_code" or "refresh_token"
         if request.body['grant_type'] not in ['authorization_code', 'refresh_token']:
+            msg = 'Request grant type {} not authorization_code or refresh_token'.format(request.body['grant_type'])
+            current_app.logger.debug(msg)
             return False
 
         return True
