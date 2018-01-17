@@ -27,15 +27,15 @@ install:
   - pip install .
 
 script:
-  - pytest tests
+  - pytest testsh
 
 after_success:
-  - docker build -t benwaonline-auth:docker .
+  - docker build -t benwaonline-auth .
   - docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
   - if [ "$TRAVIS_BRANCH" == "master" ]; then
-      docker tag benwaonline-auth:docker "$DOCKER_USERNAME"/benwaonline-auth:latest
+      docker tag benwaonline-auth:latest "$DOCKER_USERNAME"/benwaonline-auth:latest;
       docker push "$DOCKER_USERNAME"/benwaonline-auth:latest;
     else
-      docker tag benwaonline-auth:docker "$DOCKER_USERNAME"/benwaonline-auth:dev
+      docker tag benwaonline-auth:latest "$DOCKER_USERNAME"/benwaonline-auth:dev;
       docker push "$DOCKER_USERNAME"/benwaonline-auth:dev;
     fi
