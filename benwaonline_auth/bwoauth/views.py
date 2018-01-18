@@ -27,6 +27,12 @@ server = WebApplicationServer(
 def handle_invalid_usage(error):
     '''Error handler.'''
     response = error.json
+    params = {
+        'redirect_uri': error.redirect_uri,
+        'client_id': error.client_id,
+        'scopes': error.scopes
+    }
+    response = response + ' ' + json.dumps(params)
     return response, 500
 
 def extract_params(request):
@@ -128,7 +134,7 @@ def issue_token():
     uri, http_method, body, headers = extract_params(request)
     msg = 'Received request uri: {}\nhttp_method: {}\nbody:{}\nheaders: {}'.format(uri, http_method, json.dumps(body), headers)
     current_app.logger.warn(msg)
-    
+
     try:
         headers, body, status = server.create_token_response(uri, http_method, body, headers)
         return make_response(body, status, headers)
