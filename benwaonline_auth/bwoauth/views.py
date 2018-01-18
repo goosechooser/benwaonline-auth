@@ -98,8 +98,12 @@ def authorize_twitter_callback():
         db.session.commit()
 
     # serialize me daddy
+    current_app.logger.debug('Whats the credentials like {}'.format(session['credentials']))
     session['credentials']['user'] = UserSchema().dump(user).data
+
     uri, http_method, body, headers = extract_params(request)
+    msg = 'uri: {}\nhttp_method: {}\nbody:{}\nheaders: {}'.format(uri, http_method, json.dumps(body), headers)
+    current_app.logger.debug(msg)
 
     # now we create our authorization code and response
     try:
@@ -122,6 +126,8 @@ def authorize_twitter_callback():
 def issue_token():
     '''This route issues new access and refresh tokens.'''
     uri, http_method, body, headers = extract_params(request)
+    msg = 'Received request uri: {}\nhttp_method: {}\nbody:{}'.format(uri, http_method, json.dumps(body), headers)
+    current_app.logger.info(msg)
     try:
         headers, body, status = server.create_token_response(uri, http_method, body, headers)
         return make_response(body, status, headers)
