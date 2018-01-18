@@ -26,14 +26,13 @@ server = WebApplicationServer(
 @auth.errorhandler(errors.FatalClientError)
 def handle_invalid_usage(error):
     '''Error handler.'''
-    response = error.json
+    response = dict(error.twotuples)
     params = {
         'redirect_uri': error.redirect_uri,
         'client_id': error.client_id,
         'scopes': error.scopes
     }
-    response = response + ' ' + json.dumps(params)
-    return response, 500
+    return json.dumps({**response, **params}), 500
 
 def extract_params(request):
     '''Extracts pertinent info from a request.'''
@@ -63,13 +62,13 @@ def authorize():
 
     # Errors that should be shown to the user on the provider website
     except errors.FatalClientError as err:
-        msg = 'uri: {}\nhttp_method: {}\nbody:{}'.format(uri, http_method, json.dumps(body))
+        msg = '{} {}\nbody:\n{}\nheaders:\n{}'.format(http_method, uri, json.dumps(body), headers)
         current_app.logger.debug(msg)
         raise err
 
     # Errors embedded in the redirect URI back to the client
     except errors.OAuth2Error as err:
-        msg = 'uri: {}\nhttp_method: {}\nbody:{}'.format(uri, http_method, json.dumps(body))
+        msg = '{} {}\nbody:\n{}\nheaders:\n{}'.format(http_method, uri, json.dumps(body), headers)
         current_app.logger.debug(msg)
         return redirect(err.in_uri(err.redirect_uri))
 
@@ -108,7 +107,7 @@ def authorize_twitter_callback():
     session['credentials']['user'] = UserSchema().dump(user).data
 
     uri, http_method, body, headers = extract_params(request)
-    msg = 'uri: {}\nhttp_method: {}\nbody:{}\nheaders: {}'.format(uri, http_method, json.dumps(body), headers)
+    msg = '{} {}\nbody:\n{}\nheaders:\n{}'.format(http_method, uri, json.dumps(body), headers)
     current_app.logger.debug(msg)
 
     # now we create our authorization code and response
@@ -116,13 +115,13 @@ def authorize_twitter_callback():
         headers, body, status = server.create_authorization_response(
             uri, http_method, body, headers, None, session['credentials'])
     except errors.FatalClientError as err:
-        msg = 'uri: {}\nhttp_method: {}\nbody:{}'.format(uri, http_method, json.dumps(body))
+        msg = '{} {}\nbody:\n{}\nheaders:\n{}'.format(http_method, uri, json.dumps(body), headers)
         current_app.logger.debug(msg)
         raise err
 
     # Errors embedded in the redirect URI back to the client
     except errors.OAuth2Error as err:
-        msg = 'uri: {}\nhttp_method: {}\nbody:{}'.format(uri, http_method, json.dumps(body))
+        msg = '{} {}\nbody:\n{}\nheaders:\n{}'.format(http_method, uri, json.dumps(body), headers)
         current_app.logger.debug(msg)
         return redirect(err.in_uri(err.redirect_uri))
 
@@ -141,13 +140,13 @@ def issue_token():
 
     # Errors that should be shown to the user on the provider website
     except errors.FatalClientError as err:
-        msg = 'uri: {}\nhttp_method: {}\nbody:{}'.format(uri, http_method, json.dumps(body))
+        msg = '{} {}\nbody:\n{}\nheaders:\n{}'.format(http_method, uri, json.dumps(body), headers)
         current_app.logger.debug(msg)
         raise err
 
     # Errors embedded in the redirect URI back to the client
     except errors.OAuth2Error as err:
-        msg = 'uri: {}\nhttp_method: {}\nbody:{}'.format(uri, http_method, json.dumps(body))
+        msg = '{} {}\nbody:\n{}\nheaders:\n{}'.format(http_method, uri, json.dumps(body), headers)
         current_app.logger.debug(msg)
         return redirect(err.in_uri(err.redirect_uri))
 
