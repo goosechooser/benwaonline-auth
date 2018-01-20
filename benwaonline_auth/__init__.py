@@ -44,9 +44,10 @@ def create_app(config_name=None):
         init_db(app)
         init_clients(app, db.session)
 
-    @app.route('/.well-known/jwks.json')
-    def jwks():
-        return jsonify(JWKS), 200
+    if config_name != 'prod':
+        @app.route('/.well-known/jwks.json')
+        def jwks():
+            return jsonify(JWKS), 200
 
     return app
 

@@ -64,6 +64,8 @@ class BenwaValidator(RequestValidator):
         Returns:
             True if the redirect_uri in the request is allowed, False otherwise
         '''
+        msg = 'Supplied uri: {}\nUri stored in request: {}'.format(redirect_uri, request.client.redirect_uris)
+        current_app.logger.debug(msg)
         return False if redirect_uri not in request.client.redirect_uris else True
 
     def get_default_redirect_uri(self, client_id, request, *args, **kwargs):
@@ -104,9 +106,10 @@ class BenwaValidator(RequestValidator):
 
 
     # Post-authorization
-
     def save_authorization_code(self, client_id, code, request, *args, **kwargs):
         '''Saves the authorization code and any other pertinent attributes.'''
+        msg = 'Scopes in the request: {}'.format(request.scopes)
+        current_app.logger.debug(msg)
         associations = {
             'scopes': request.scopes,
             'redirect_uri': request.redirect_uri,
@@ -114,7 +117,7 @@ class BenwaValidator(RequestValidator):
             'state': request.state,
             'user': request.user
         }
-        cache.set(code['code'], associations, timeout=5*60)
+        cache.set(code['code'], associations, expire=5*60)
         msg = 'Saved {} in the cache'.format(code['code'])
         current_app.logger.debug(msg)
         return
@@ -179,6 +182,8 @@ class BenwaValidator(RequestValidator):
             return False
 
         request.scopes = cached['scopes']
+        msg = 'Scopes in the request: {}'.format(request.scopes)
+        current_app.logger.debug(msg)
         request.user = cached['user']
         return True
 
@@ -186,13 +191,23 @@ class BenwaValidator(RequestValidator):
         # You did save the redirect uri with the authorization code right?
         # When we generate our authorization code we must save the redirect_uri
         # here we check
+        msg = 'This is probably where its dying\nclient_id: {}\nredirect_uri: {}\nclient: {}'.format(client_id, redirect_uri, client)
+        current_app.logger.debug(msg)
         cached = cache.get(code)
+        msg = 'Does cache even exist still? {}'.format(cached)
+        current_app.logger.debug(msg)
+
+        msg = 'finally {}'.format(redirect_uri in client.redirect_uris)
+        current_app.logger.debug(msg)
+
         return redirect_uri == cached['redirect_uri']
 
     def validate_grant_type(self, client_id, grant_type, client, request, *args, **kwargs):
         # Clients should only be allowed to use one type of grant.
         # In this case, it must be "authorization_code" or "refresh_token"
         if request.body['grant_type'] not in ['authorization_code', 'refresh_token']:
+            msg = 'Request grant type {} not authorization_code or refresh_token'.format(request.body['grant_type'])
+            current_app.logger.debug(msg)
             return False
 
         return True
@@ -230,8 +245,12 @@ class BenwaValidator(RequestValidator):
         """
 
         user = User.query.get(request.user['user_id'])
+        msg = 'Saving the token.\nScopes looks like: {}'.format(request.scopes)
+        current_app.logger.debug(msg)
         if not user.refresh_token or user.refresh_token.is_expired:
-            current_app.logger.info('Creating new refresh token for user', user.user_id)
+            msg = 'Creating new refresh token for user {}'.format(user.user_id)
+            current_app.logger.debug(msg)
+            
             refresh_token = Token(
                 code=token['refresh_token'],
                 expires_in=CFG.REFRESH_TOKEN_LIFESPAN,
@@ -245,11 +264,16 @@ class BenwaValidator(RequestValidator):
             user.refresh_token = refresh_token
             db.session.commit()
 
+            msg = 'Added new refresh token to client {} and user {}'.format(client.client_id, user.user_id)
+            current_app.logger.debug(msg)
+
         return
 
     def invalidate_authorization_code(self, client_id, code, request, *args, **kwargs):
         # Authorization codes are use once, invalidate it when a Bearer token
         # has been acquired.
+        msg = 'invalidated code {}'.format(code)
+        current_app.logger.debug(msg)
         return cache.delete(code)
 
     # Token refresh request
@@ -260,6 +284,8 @@ class BenwaValidator(RequestValidator):
         # access token if the client did not specify a scope during the
         # request.
         token = Token.query.get(refresh_token)
+        msg = 'Scopes in the token: {}'.format(token.scopes)
+        current_app.logger.debug(msg)
         return token.scopes
 
     def rotate_refresh_token(self, request):
