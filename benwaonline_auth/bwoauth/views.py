@@ -55,6 +55,8 @@ def authorize():
         session['credentials'] = credentials['request']._params
         session['credentials']['scopes'] = scopes
         # request was valid so now we move them to twitter to authenticate
+        msg = 'Redirecting to twitter for authorization'
+        current_app.logger.info(msg)
         return redirect(url_for('auth.authorize_twitter'))
 
     # Errors that should be shown to the user on the provider website
@@ -92,6 +94,8 @@ def authorize_twitter_callback():
 
     user = User.query.get(resp['user_id'])
     if not user:
+        msg = 'User id {} not found. Creating new entry'.format(resp['user_id'])
+        current_app.logger.debug(msg)
         user = User(user_id=resp['user_id'])
         db.session.add(user)
         db.session.commit()
@@ -104,6 +108,8 @@ def authorize_twitter_callback():
     try:
         headers, body, status = server.create_authorization_response(
             uri, http_method, body, headers, None, session['credentials'])
+        msg = 'Sending response to benwa.online for authorization request'
+        current_app.logger.info(msg)
         return redirect(headers['Location'])
 
     except errors.FatalClientError as err:
@@ -111,7 +117,8 @@ def authorize_twitter_callback():
 
     # Errors embedded in the redirect URI back to the client
     except errors.OAuth2Error as err:
-        current_app.logger.debug(err)
+        msg = '{}'.format(err)
+        current_app.logger.debug(msg)
         return redirect(err.in_uri(err.redirect_uri))
 
 @auth.route('/oauth/token', methods=['POST'])
@@ -120,6 +127,8 @@ def issue_token():
     uri, http_method, body, headers = extract_params(request)
     try:
         headers, body, status = server.create_token_response(uri, http_method, body, headers)
+        msg = 'Sending response for token request'
+        current_app.logger.info(msg)
         return make_response(body, status, headers)
 
     # Errors that should be shown to the user on the provider website
@@ -128,7 +137,8 @@ def issue_token():
 
     # Errors embedded in the redirect URI back to the client
     except errors.OAuth2Error as err:
-        current_app.logger.debug(err)
+        msg = '{}'.format(err)
+        current_app.logger.debug(msg)
         return redirect(err.in_uri(err.redirect_uri))
 
 # @auth.route('/oauth/revoke', methods=['POST'])
