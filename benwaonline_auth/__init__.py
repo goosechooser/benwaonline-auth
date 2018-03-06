@@ -1,7 +1,7 @@
 import json
 import logging
 from marshmallow import pprint
-from flask import Flask, g, url_for, request, flash, redirect, jsonify
+from flask import Flask, g, url_for, request, flash, redirect, jsonify, current_app
 from sqlalchemy import create_engine
 
 from benwaonline_auth.oauth import oauth
@@ -13,22 +13,22 @@ from benwaonline_auth import models
 with open('jwks.json', 'r') as f:
     JWKS = json.load(f)
 
-def setup_logger_handlers(logger):
-    fh = logging.FileHandler('logs/' + __name__ + '_debug.log')
+def setup_logger_handlers(app):
+    fh = logging.FileHandler(app.config['LOGS_PATH'] + __name__ + '_debug.log')
     fh.setFormatter(logging.Formatter(
     '%(asctime)s %(levelname)s: %(message)s '
     '[in %(pathname)s:%(lineno)d]'
     ))
     fh.setLevel(logging.DEBUG)
-    logger.addHandler(fh)
+    app.logger.addHandler(fh)
 
 def create_app(config_name=None):
     """
     Returns the Flask app.
     """
     app = Flask(__name__)
-    setup_logger_handlers(app.logger)
     app.config.from_object(app_config[config_name])
+    setup_logger_handlers(app)
 
     db.init_app(app)
     oauth.init_app(app)

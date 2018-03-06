@@ -28,6 +28,7 @@ class Config(object):
     ISSUER = 'issuer'
     API_AUDIENCE = 'api audience'
     REFRESH_TOKEN_LIFESPAN = timedelta(days=14)
+    LOGS_PATH = os.getenv('LOGS_PATH', os.getcwd())
 
 class DevConfig(Config):
     SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:root@localhost:3306/benwaonlineauth'
