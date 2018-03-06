@@ -16,15 +16,14 @@ CFG = app_config[os.getenv('FLASK_CONFIG')]
 
 def generate_jwt_token(request):
     ''' Generates a JWT'''
-    now = (datetime.utcnow() - datetime(1970, 1, 1))
+    now = datetime.utcnow() - datetime(1970,1,1)
     exp_at = now + timedelta(seconds=3600)
-
     claims = {
         'iss': CFG.ISSUER,
         'aud': CFG.API_AUDIENCE,
         'sub': request.user['user_id'],
-        'iat': now.total_seconds(),
-        'exp': exp_at.total_seconds()
+        'iat': int(now.total_seconds()),
+        'exp': int(exp_at.total_seconds())
     }
     headers = {
         'typ': 'JWT',
@@ -162,7 +161,13 @@ class BenwaValidator(RequestValidator):
         '''
 
         cached = cache.get(code)
-        if cached['client_id'] != client_id:
+        try:
+            if cached['client_id'] != client_id:
+                return False
+
+        except TypeError:
+            msg = 'Code {} not found, possibly invalidated'.format(code)
+            current_app.logger.info(msg)
             return False
 
         request.scopes = cached['scopes']
@@ -215,24 +220,36 @@ class BenwaValidator(RequestValidator):
             - Resource Owner Password Credentials Grant (might not associate a client)
             - Client Credentials grant
         """
-
         user = User.query.get(request.user['user_id'])
-        if not user.refresh_token or user.refresh_token.is_expired:
-            current_app.logger.info('Creating new refresh token for user', user.user_id)
-            refresh_token = Token(
-                code=token['refresh_token'],
-                expires_in=CFG.REFRESH_TOKEN_LIFESPAN,
-                scopes=' '.join(request.scopes)
-            )
 
-            # Consider keeping a seperate model for RevokedTokens?
-            db.session.add(refresh_token)
-            client = Client.query.get(request.client.client_id)
-            client.refresh_tokens.append(refresh_token)
-            user.refresh_token = refresh_token
-            db.session.commit()
+        try:
+            user.refresh_token.is_expired = self.check_token_expiration(user.refresh_token)
+        except AttributeError as err:
+            msg = 'User does not have a refresh token\nCreating new refresh token for user {}'.format(user.user_id)
+            current_app.logger.info(msg)
+            self.save_refresh_token(token, request, user)
+
+        else:
+            if user.refresh_token.is_expired:
+                msg = 'Refresh token for user is expired\nCreating new refresh token for user {}'.format(user.user_id)
+                current_app.logger.info(msg)
+                self.save_refresh_token(token, request, user)
 
         return
+
+    def save_refresh_token(self, token, request, user):
+        refresh_token = Token(
+            code=token['refresh_token'],
+            expires_in=CFG.REFRESH_TOKEN_LIFESPAN,
+            scopes=' '.join(request.scopes)
+        )
+
+        # Consider keeping a seperate model for RevokedTokens?
+        db.session.add(refresh_token)
+        client = Client.query.get(request.client.client_id)
+        client.refresh_tokens.append(refresh_token)
+        user.refresh_token = refresh_token
+        db.session.commit()
 
     def invalidate_authorization_code(self, client_id, code, request, *args, **kwargs):
         # Authorization codes are use once, invalidate it when a Bearer token
@@ -260,8 +277,20 @@ class BenwaValidator(RequestValidator):
             - Refresh Token Grant
         """
         token = Token.query.get(request.refresh_token)
-        token.is_expired = token.created_on < datetime.utcnow() - token.expires_in
+        token.is_expired = self.check_token_expiration(token)
+
         return token.is_expired
+
+    def check_token_expiration(self, token):
+        '''Checks if token is expired or not.
+
+        Returns:
+            True if token is expired, False if not/
+        '''
+        now = datetime.utcnow()
+        expires_on = token.created_on + token.expires_in
+
+        return expires_on < now
 
     def validate_refresh_token(self, refresh_token, client, request, *args, **kwargs):
         """Ensure the Bearer token is valid and authorized access to scopes.

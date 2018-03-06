@@ -87,14 +87,13 @@ def init_tokens(session):
     return
 
 def init_users(session):
-    user = models.User(
-        user_id='6969'
-    )
+    user = models.User(user_id='6969')
     session.add(user)
 
-    user = models.User(
-        user_id='420'
-    )
+    user = models.User(user_id='420')
+    session.add(user)
+
+    user = models.User(user_id='666')
     session.add(user)
     session.commit()
 
