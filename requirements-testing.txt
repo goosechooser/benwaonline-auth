@@ -1,0 +1,8 @@
+coverage==4.4.2
+pytest==3.3.1
+pytest-cov==2.5.1
+pytest-cover==3.0.0
+pytest-coverage==0.0
+pytest-flask==0.10.0
+pytest-mock==1.6.3
+requests-mock==1.4.0
