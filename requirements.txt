@@ -30,7 +30,7 @@ pycryptodome==3.5.1
 pylint==1.8.1
 PyMySQL==0.8.0
 pyOpenSSL==17.5.0
-python-jose==1.4.0
+python-jose==2.0.2
 requests==2.18.4
 requests-oauthlib==0.8.0
 six==1.11.0
