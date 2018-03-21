@@ -14,13 +14,13 @@ with open('jwks.json', 'r') as f:
     JWKS = json.load(f)
 
 def setup_logger_handlers(app):
-    fh = logging.FileHandler(app.config['LOGS_PATH'] + '/' + __name__ + '_debug.log')
-    fh.setFormatter(logging.Formatter(
+    sh = logging.StreamHandler()
+    sh.setFormatter(logging.Formatter(
     '%(asctime)s %(levelname)s: %(message)s '
     '[in %(pathname)s:%(lineno)d]'
     ))
-    fh.setLevel(logging.DEBUG)
-    app.logger.addHandler(fh)
+    sh.setLevel(logging.DEBUG)
+    app.logger.addHandler(sh)
 
 def create_app(config_name=None):
     """
