@@ -82,6 +82,8 @@ class BenwaValidator(RequestValidator):
             True
         '''
         request.scopes = request.client.default_scopes
+        msg = 'Scopes are {}'.format(request.scopes)
+        current_app.logger.debug(msg)
         return True
 
     def get_default_scopes(self, client_id, request, *args, **kwargs):
@@ -131,7 +133,8 @@ class BenwaValidator(RequestValidator):
         try:
             client = Client.query.get(request.client_id)
         except TypeError as err:
-            current_app.logger.error('Request did not include a client_id', request, err)
+            msg = 'Request did not include a client_id {} {}'.format(request, err)
+            current_app.logger.error(msg)
             return False
 
         # Didn't find client in db
