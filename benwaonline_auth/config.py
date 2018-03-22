@@ -10,17 +10,14 @@ def get_pem(fname):
     except FileNotFoundError:
         return None
 
-def get_secret(secret_name):
-    '''Returns value provided by a docker secret, otherwise returns env'''
-    try:
-        with open('/run/secrets/' + secret_name, 'r') as f:
-            data = f.read()
-            return data.strip()
-    except OSError:
-        return os.getenv(secret_name)
-
 class Config(object):
     BASE_DIR = BASE
+    DB_BASE_URI = 'mysql+pymysql://{}:{}@{}:{}/'.format(
+        os.getenv('MYSQL_USER', 'root'),
+        os.getenv('MYSQL_PASSWORD', ''),
+        os.getenv('MYSQL_HOST', '127.0.0.1'),
+        os.getenv('MYSQL_PORT', '3306')
+    )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SECRET_KEY = 'vsecret'
     TWITTER_CONSUMER_KEY = os.getenv('TWITTER_CONSUMER_KEY')
@@ -31,7 +28,8 @@ class Config(object):
     LOGS_PATH = os.getenv('LOGS_PATH', os.getcwd())
 
 class DevConfig(Config):
-    SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:root@localhost:3306/benwaonlineauth'
+    DB_NAME = os.getenv('DB_NAME', 'benwaonlineauth')
+    SQLALCHEMY_DATABASE_URI = Config.DB_BASE_URI + DB_NAME
     DEBUG = True
     CLIENT_ID = 'nice'
     CLIENT_SECRET = 'ok'
@@ -40,14 +38,8 @@ class DevConfig(Config):
     PUBLIC_KEY = get_pem('benwaauth_pub.pem')
 
 class TestConfig(Config):
-    DB_BASE_URI = 'mysql+pymysql://{}:{}@{}:{}/'.format(
-        os.getenv('MYSQL_USER', 'root'),
-        os.getenv('MYSQL_PASSWORD', ''),
-        os.getenv('MYSQL_HOST', '127.0.0.1'),
-        os.getenv('MYSQL_PORT', '3306')
-    )
-
-    SQLALCHEMY_DATABASE_URI = SQLALCHEMY_DATABASE_URI = DB_BASE_URI + 'benwaonlineauth_test'
+    DB_NAME = os.getenv('DB_NAME', 'benwaonlineauth_test')
+    SQLALCHEMY_DATABASE_URI = Config.DB_BASE_URI + DB_NAME
     AUTH_URL_BASE = os.getenv('AUTH_URL_BASE')
     TESTING = True
     WTF_CSRF_ENABLED = False
@@ -56,8 +48,8 @@ class TestConfig(Config):
 
 class ProdConfig(Config):
     DB_BASE_URI = 'mysql+pymysql://{}:{}@{}:{}/'.format(
-        get_secret('MYSQL_USER'),
-        get_secret('MYSQL_PASSWORD'),
+        os.getenv('MYSQL_USER'),
+        os.getenv('MYSQL_PASSWORD'),
         os.getenv('MYSQL_HOST'),
         os.getenv('MYSQL_PORT')
     )
