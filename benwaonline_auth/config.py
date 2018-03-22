@@ -29,7 +29,7 @@ class Config(object):
 
 class DevConfig(Config):
     DB_NAME = os.getenv('DB_NAME', 'benwaonlineauth')
-    SQLALCHEMY_DATABASE_URI = DB_BASE_URI + DB_NAME
+    SQLALCHEMY_DATABASE_URI = Config.DB_BASE_URI + DB_NAME
     DEBUG = True
     CLIENT_ID = 'nice'
     CLIENT_SECRET = 'ok'
