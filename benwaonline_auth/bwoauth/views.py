@@ -72,6 +72,8 @@ def authorize():
 def authorize_twitter():
     '''Directs user to twitter authorization page.'''
     callback_url = cfg.AUTH_URL_BASE + url_for('auth.authorize_twitter_callback', next=request.args.get('next'))
+    msg = 'Callback url is {}'.format(callback_url)
+    current_app.logger.debug(msg)
     return twitter.authorize(callback=callback_url)
 
 @auth.route('/authorize-twitter/callback')
@@ -100,7 +102,6 @@ def authorize_twitter_callback():
         db.session.add(user)
         db.session.commit()
 
-    # serialize me daddy
     session['credentials']['user'] = UserSchema().dump(user).data
     uri, http_method, body, headers = extract_params(request)
 
