@@ -14,8 +14,8 @@ class Config(object):
     BASE_DIR = BASE
     DB_BASE_URI = 'mysql+pymysql://{}:{}@{}:{}/'.format(
         os.getenv('MYSQL_USER', 'root'),
-        os.getenv('MYSQL_PASSWORD', ''),
-        os.getenv('MYSQL_HOST', '127.0.0.1'),
+        os.getenv('MYSQL_PASSWORD', 'root'),
+        os.getenv('MYSQL_HOST', '192.168.10.11'),
         os.getenv('MYSQL_PORT', '3306')
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
@@ -29,7 +29,7 @@ class Config(object):
 
 class DevConfig(Config):
     DB_NAME = os.getenv('DB_NAME', 'benwaonlineauth')
-    SQLALCHEMY_DATABASE_URI = Config.DB_BASE_URI + DB_NAME
+    SQLALCHEMY_DATABASE_URI = DB_BASE_URI + DB_NAME
     DEBUG = True
     CLIENT_ID = 'nice'
     CLIENT_SECRET = 'ok'

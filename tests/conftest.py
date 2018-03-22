@@ -13,7 +13,6 @@ def testdir(tmpdir_factory):
 @pytest.fixture(scope='session')
 def app(testdir):
     app = create_app('test')
-
     with app.app_context():
         yield app
 
