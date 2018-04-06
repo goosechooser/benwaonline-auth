@@ -5,6 +5,7 @@ from flask import (
     make_response, current_app
 )
 from oauthlib.oauth2.rfc6749 import errors
+from oauthlib.oauth2.rfc6749.utils import scope_to_list
 from oauthlib.oauth2 import WebApplicationServer
 
 from benwaonline_auth.database import db
@@ -53,7 +54,8 @@ def authorize():
 
         # Need to examine more carefully and decide what I do/don't need
         session['credentials'] = credentials['request']._params
-        session['credentials']['scopes'] = scopes
+        session['credentials']['scopes'] = scope_to_list(scopes)
+
         # request was valid so now we move them to twitter to authenticate
         msg = 'Redirecting to twitter for authorization'
         current_app.logger.info(msg)
@@ -87,10 +89,11 @@ def authorize_twitter_callback():
         'x_auth_expires': '0'
     }
     '''
+
     resp = twitter.authorized_response()
     if not resp:
         current_app.logger.debug('No authorized response from twitter')
-        redirect_uri = session['redirect_uri']
+        redirect_uri = cfg.FRONT_URL_BASE + '/authorize/callback?denied=True'
         session.clear()
         return redirect(redirect_uri)
 
@@ -138,7 +141,7 @@ def issue_token():
 
     # Errors embedded in the redirect URI back to the client
     except errors.OAuth2Error as err:
-        msg = '{}'.format(err)
+        msg = 'Embedding error {}'.format(err)
         current_app.logger.debug(msg)
         return redirect(err.in_uri(err.redirect_uri))
 

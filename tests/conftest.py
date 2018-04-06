@@ -2,17 +2,26 @@ from datetime import timedelta
 import pytest
 
 from benwaonline_auth import create_app
+from benwaonline_auth.config import TestConfig
 from benwaonline_auth.database import db as _db
 from benwaonline_auth import models
 
-@pytest.fixture(scope='session')
-def testdir(tmpdir_factory):
-    fn = tmpdir_factory.mktemp('test')
-    yield fn
+def pytest_addoption(parser):
+    parser.addoption("--db", action="store", default="sqlite",
+        help="my option: mysql or sqlite")
 
 @pytest.fixture(scope='session')
-def app(testdir):
+def dbopt(request):
+    return request.config.getoption("--db")
+
+@pytest.fixture(scope='session')
+def app(dbopt):
     app = create_app('test')
+    app.config.update(TestConfig.__dict__)
+
+    if dbopt == 'sqlite':
+        app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite://'
+
     with app.app_context():
         yield app
 
@@ -52,8 +61,10 @@ def init_clients(session):
         client_secret='test_secret',
         is_confidential=True,
         blacklisted=False,
+        grant_type='authorization_code',
         response_type='code',
         _redirect_uris='http://test/callback',
+        allowed_scopes='ham test thanks',
         default_scopes='ham test'
     )
     session.add(client)

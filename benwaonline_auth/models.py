@@ -1,4 +1,14 @@
+from sqlalchemy_utils import ChoiceType
 from benwaonline_auth.database import db
+
+GRANT_TYPES = [
+        ('authorization_code', 'Authorization code'),
+        ('refresh_token', 'Refresh token')
+    ]
+
+RESPONSE_TYPES = [
+    ('code', 'Authorization code')
+]
 
 class User(db.Model):
     __tablename__ = 'user'
@@ -31,9 +41,11 @@ class Client(db.Model):
     # public or confidential
     is_confidential = db.Column(db.Boolean, default=True)
     blacklisted = db.Column(db.Boolean, default=False)
-    response_type = db.Column(db.String(40))
+    grant_type = db.Column(ChoiceType(GRANT_TYPES))
+    response_type = db.Column(ChoiceType(RESPONSE_TYPES))
 
     _redirect_uris = db.Column(db.Text)
+    allowed_scopes = db.Column(db.Text)
     default_scopes = db.Column(db.Text)
 
     refresh_tokens = db.relationship('Token', backref='client', lazy='dynamic')
