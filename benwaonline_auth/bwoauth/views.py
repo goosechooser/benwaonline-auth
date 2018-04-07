@@ -52,9 +52,12 @@ def authorize():
         scopes, credentials = server.validate_authorization_request(
             uri, http_method, body, headers)
 
-        # Need to examine more carefully and decide what I do/don't need
-        session['credentials'] = credentials['request']._params
-        session['credentials']['scopes'] = scope_to_list(scopes)
+        session['credentials'] = {
+            k: credentials['request']._params[k]
+            for k in
+            ['audience', 'client_id', 'redirect_uri', 'response_type']
+        }
+        session['scopes'] = scope_to_list(scopes)
 
         # request was valid so now we move them to twitter to authenticate
         msg = 'Redirecting to twitter for authorization'
@@ -111,10 +114,11 @@ def authorize_twitter_callback():
 
     # now we create our authorization code and response
     try:
-        headers, body, status = server.create_authorization_response(
-            uri, http_method, body, headers, None, session['credentials'])
+        headers, _, _ = server.create_authorization_response(
+            uri, http_method, body, headers, session['scopes'], session['credentials'])
         msg = 'Sending response to benwa.online for authorization request'
         current_app.logger.info(msg)
+
         return redirect(headers['Location'])
 
     except errors.FatalClientError as err:
