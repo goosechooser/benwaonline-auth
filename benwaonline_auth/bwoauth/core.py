@@ -128,13 +128,9 @@ class BenwaValidator(RequestValidator):
             'state': request.state,
             'user': request.user
         }
-        msg = 'Saving authorization code: {}'.format(code['code'])
-        current_app.logger.debug(msg)
 
-        cache.set(code['code'], associations, expire=5*60)
+        cache.set(code['code'], associations, expire=10*60)
 
-        msg = 'Did cache actually save?\n{}'.format(cache.get(code['code']))
-        current_app.logger.debug(msg)
         return
 
     # Token request
@@ -193,21 +189,14 @@ class BenwaValidator(RequestValidator):
             True if the code belongs to the client, False otherwise
         '''
         cached = cache.get(code)
-        msg = 'what /is/ cached?\n{}'.format(cached)
-        current_app.logger.debug(msg)
-        
+
         if cached is None:
             msg = 'validate_code - Code {} not found, possibly invalidated'.format(code)
             current_app.logger.info(msg)
             return False
 
-
-
-        try:
-            if cached['client_id'] != client_id:
-                return False
-        except TypeError:
-            msg = 'validate_code - Code {} not found, possibly invalidated'.format(code)
+        if cached.get('client_id', None) != client_id:
+            msg = 'validate_code - Client id in cache does not make supplied client id'
             current_app.logger.info(msg)
             return False
 
@@ -221,15 +210,12 @@ class BenwaValidator(RequestValidator):
         # here we check
         cached = cache.get(code)
 
-        try:
-            return redirect_uri == cached['redirect_uri']
-        except TypeError:
-            msg = 'Supplied redirect uri {}'.format(redirect_uri)
-            current_app.logger.info(msg)
-
-            msg = 'Code {} not found, possibly invalidated'.format(code)
+        if cached is None:
+            msg = 'confirm_redirect_uri - Code {} not found, possibly invalidated'.format(code)
             current_app.logger.info(msg)
             return False
+
+        return redirect_uri == cached['redirect_uri']
 
     def validate_grant_type(self, client_id, grant_type, client, request, *args, **kwargs):
         # Clients should only be allowed to use one type of grant.

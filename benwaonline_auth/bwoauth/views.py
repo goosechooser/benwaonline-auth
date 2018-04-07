@@ -49,8 +49,7 @@ def authorize():
     '''
     uri, http_method, body, headers = extract_params(request)
     try:
-        scopes, credentials = server.validate_authorization_request(
-            uri, http_method, body, headers)
+        scopes, credentials = server.validate_authorization_request(uri, http_method, body, headers)
 
         session['credentials'] = {
             k: credentials['request']._params[k]
@@ -59,17 +58,14 @@ def authorize():
         }
         session['scopes'] = scope_to_list(scopes)
 
-        # request was valid so now we move them to twitter to authenticate
         msg = 'Redirecting to twitter for authorization'
         current_app.logger.info(msg)
         return redirect(url_for('auth.authorize_twitter'))
 
-    # Errors that should be shown to the user on the provider website
     except errors.FatalClientError as err:
         current_app.logger.debug(err)
         raise err
 
-    # Errors embedded in the redirect URI back to the client
     except errors.OAuth2Error as err:
         current_app.logger.debug(err)
         return redirect(err.in_uri(err.redirect_uri))
@@ -80,6 +76,7 @@ def authorize_twitter():
     callback_url = cfg.AUTH_URL_BASE + url_for('auth.authorize_twitter_callback', next=request.args.get('next'))
     msg = 'Callback url is {}'.format(callback_url)
     current_app.logger.debug(msg)
+
     return twitter.authorize(callback=callback_url)
 
 @auth.route('/authorize-twitter/callback')
@@ -112,7 +109,6 @@ def authorize_twitter_callback():
     session['credentials']['user'] = UserSchema().dump(user).data
     uri, http_method, body, headers = extract_params(request)
 
-    # now we create our authorization code and response
     try:
         headers, _, _ = server.create_authorization_response(
             uri, http_method, body, headers, session['scopes'], session['credentials'])
@@ -124,7 +120,6 @@ def authorize_twitter_callback():
     except errors.FatalClientError as err:
         raise err
 
-    # Errors embedded in the redirect URI back to the client
     except errors.OAuth2Error as err:
         msg = '{}'.format(err)
         current_app.logger.debug(msg)
@@ -134,9 +129,6 @@ def authorize_twitter_callback():
 def issue_token():
     '''This route issues new access and refresh tokens.'''
     uri, http_method, body, headers = extract_params(request)
-    
-    msg = 'uri: {}\nbody: {}\nheaders: {}\n'.format(uri, body, headers)
-    current_app.logger.debug(msg)
 
     try:
         headers, body, status = server.create_token_response(uri, http_method, body, headers)
@@ -144,11 +136,9 @@ def issue_token():
         current_app.logger.info(msg)
         return make_response(body, status, headers)
 
-    # Errors that should be shown to the user on the provider website
     except errors.FatalClientError as err:
         raise err
 
-    # Errors embedded in the redirect URI back to the client
     except errors.OAuth2Error as err:
         msg = 'Embedding error {}'.format(err)
         current_app.logger.debug(msg)
