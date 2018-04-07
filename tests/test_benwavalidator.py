@@ -2,7 +2,7 @@ from datetime import timedelta, datetime, date
 import pytest
 from oauthlib.common import Request
 
-from benwaonline_auth.bwoauth import cache
+from benwaonline_auth.cache import cache
 from benwaonline_auth.bwoauth.core import BenwaValidator
 from benwaonline_auth.models import Client, User, Token
 

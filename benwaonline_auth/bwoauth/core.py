@@ -10,7 +10,7 @@ from oauthlib.common import generate_token
 from benwaonline_auth.database import db
 from benwaonline_auth.models import Client, Token, User
 from benwaonline_auth.schemas import UserSchema
-from benwaonline_auth.bwoauth import cache
+from benwaonline_auth.cache import cache
 from benwaonline_auth.config import app_config
 
 CFG = app_config[os.getenv('FLASK_CONFIG')]
@@ -131,7 +131,10 @@ class BenwaValidator(RequestValidator):
         msg = 'Saving authorization code: {}'.format(code['code'])
         current_app.logger.debug(msg)
 
-        cache.set(code['code'], associations, timeout=5*60)
+        cache.set(code['code'], associations, expire=5*60)
+
+        msg = 'Did cache actually save?\n{}'.format(cache.get(code['code']))
+        current_app.logger.debug(msg)
         return
 
     # Token request
@@ -189,11 +192,17 @@ class BenwaValidator(RequestValidator):
         Returns:
             True if the code belongs to the client, False otherwise
         '''
-
         cached = cache.get(code)
         msg = 'what /is/ cached?\n{}'.format(cached)
         current_app.logger.debug(msg)
         
+        if cached is None:
+            msg = 'validate_code - Code {} not found, possibly invalidated'.format(code)
+            current_app.logger.info(msg)
+            return False
+
+
+
         try:
             if cached['client_id'] != client_id:
                 return False
@@ -296,6 +305,9 @@ class BenwaValidator(RequestValidator):
     def invalidate_authorization_code(self, client_id, code, request, *args, **kwargs):
         # Authorization codes are use once, invalidate it when a Bearer token
         # has been acquired.
+        msg = 'Deleting code {} from the cache'.format(code)
+        current_app.logger.debug(msg)
+
         return cache.delete(code)
 
     # Token refresh request

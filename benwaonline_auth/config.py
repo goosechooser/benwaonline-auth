@@ -25,6 +25,8 @@ class Config(object):
     ISSUER = 'issuer'
     API_AUDIENCE = 'api audience'
     REFRESH_TOKEN_LIFESPAN = timedelta(days=14)
+    MEMCACHED_HOST = os.getenv('MEMCACHED_HOST', '192.168.10.11')
+    MEMCACHED_PORT = int(os.getenv('MEMCACHED_PORT', 11211))
 
 class DevConfig(Config):
     DB_NAME = os.getenv('DB_NAME', 'benwaonlineauth')
@@ -46,7 +48,8 @@ class TestConfig(Config):
     WTF_CSRF_ENABLED = False
     PRIVATE_KEY = get_pem('tests/data/benwaonline_auth_test_priv.pem')
     PUBLIC_KEY = get_pem('tests/data/benwaonline_auth_test_pub.pem')
-
+    MEMCACHED_PORT = int(os.getenv('MEMCACHED_PORT', 11212))
+    
 class ProdConfig(Config):
     DB_BASE_URI = 'mysql+pymysql://{}:{}@{}:{}/'.format(
         os.getenv('MYSQL_USER'),

@@ -7,8 +7,11 @@ python:
 
 env:
   - FLASK_CONFIG=test
+  - MEMCACHED_HOST=localhost
+  - MEMCACHED_PORT=11211
 
 services:
+  - memcached
   - mysql
 
 before_install:
@@ -22,4 +25,3 @@ install:
 
 script:
   - pytest tests
-  

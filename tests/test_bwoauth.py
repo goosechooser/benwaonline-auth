@@ -1,7 +1,7 @@
 from urllib.parse import urlencode
 import pytest
 from flask import url_for
-from benwaonline_auth.bwoauth import cache
+from benwaonline_auth.cache import cache
 from benwaonline_auth.models import User
 def auth_request_url(query):
     return url_for('auth.authorize') + '?' + urlencode(query)
