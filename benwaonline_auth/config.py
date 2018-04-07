@@ -25,7 +25,6 @@ class Config(object):
     ISSUER = 'issuer'
     API_AUDIENCE = 'api audience'
     REFRESH_TOKEN_LIFESPAN = timedelta(days=14)
-    LOGS_PATH = os.getenv('LOGS_PATH', os.getcwd())
 
 class DevConfig(Config):
     DB_NAME = os.getenv('DB_NAME', 'benwaonlineauth')
