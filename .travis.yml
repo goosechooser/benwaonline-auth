@@ -6,9 +6,10 @@ python:
   - "3.6"
 
 env:
-  - FLASK_CONFIG=test
-  - MEMCACHED_HOST=localhost
-  - MEMCACHED_PORT=11211
+  global:
+    - FLASK_CONFIG=test
+    - MEMCACHED_HOST=localhost
+    - MEMCACHED_PORT=11211
 
 services:
   - memcached
