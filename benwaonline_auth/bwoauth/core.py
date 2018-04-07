@@ -210,6 +210,9 @@ class BenwaValidator(RequestValidator):
         try:
             return redirect_uri == cached['redirect_uri']
         except TypeError:
+            msg = 'Supplied redirect uri {}'.format(redirect_uri)
+            current_app.logger.info(msg)
+
             msg = 'Code {} not found, possibly invalidated'.format(code)
             current_app.logger.info(msg)
             return False
