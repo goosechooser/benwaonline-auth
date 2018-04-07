@@ -30,7 +30,7 @@ def create_app(config_name=None):
     """
     app = Flask(__name__)
     app.config.from_object(app_config[config_name])
-    # setup_logger_handlers(app)
+    setup_logger_handlers(app)
 
     db.init_app(app)
     oauth.init_app(app)
