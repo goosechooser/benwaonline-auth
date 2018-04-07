@@ -193,7 +193,7 @@ class BenwaValidator(RequestValidator):
             if cached['client_id'] != client_id:
                 return False
         except TypeError:
-            msg = 'Code {} not found, possibly invalidated'.format(code)
+            msg = 'validate_code - Code {} not found, possibly invalidated'.format(code)
             current_app.logger.info(msg)
             return False
 

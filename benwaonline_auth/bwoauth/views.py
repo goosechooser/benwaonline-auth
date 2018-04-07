@@ -134,6 +134,9 @@ def authorize_twitter_callback():
 def issue_token():
     '''This route issues new access and refresh tokens.'''
     uri, http_method, body, headers = extract_params(request)
+    msg = 'uri: {}\nbody: {}\nheaders: {}\n'.format(uri, body, headers)
+    current_app.logger.debug(msg)
+
     try:
         headers, body, status = server.create_token_response(uri, http_method, body, headers)
         msg = 'Sending response for token request'

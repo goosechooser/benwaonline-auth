@@ -10,7 +10,6 @@ def mock_credential():
     return {
         'redirect_uri': 'http://test/callback',
         'response_type': 'code',
-        'scopes': 'test scopes',
         'client_id': 'test_id',
         'client_secret': 'test_secret'
     }
@@ -54,6 +53,7 @@ def test_authorize(client, session, mocker):
     url = auth_request_url({
         'client_id': 'test_id',
         'client_secret': 'test_secret',
+        'audience': 'nice',
         'response_type': 'code',
         'redirect_uri': 'http://test/callback'
     })
@@ -73,6 +73,7 @@ def test_no_authorize_twitter_callback(client, session, mocker):
 class TestAuthorizeTwitterCallback(object):
     def test_user_exists(self, client, session, mocker):
         with client.session_transaction() as sess:
+            sess['scopes'] = 'test scopes'
             sess['credentials'] = mock_credential()
 
         twitter_resp = mock_twitter_response()
@@ -83,6 +84,7 @@ class TestAuthorizeTwitterCallback(object):
 
     def test_user_dont_exist(self, client, session, mocker):
         with client.session_transaction() as sess:
+            sess['scopes'] = 'test scopes'
             sess['credentials'] = mock_credential()
 
         twitter_resp = mock_twitter_response()
@@ -97,6 +99,7 @@ class TestAuthorizeTwitterCallback(object):
 
     def test_missing_redirect_uri(self, client, session, mocker):
         with client.session_transaction() as sess:
+            sess['scopes'] = 'test scopes'
             sess['credentials'] = mock_credential()
             del sess['credentials']['redirect_uri']
 
