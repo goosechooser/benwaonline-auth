@@ -128,6 +128,9 @@ class BenwaValidator(RequestValidator):
             'state': request.state,
             'user': request.user
         }
+        msg = 'Saving authorization code: {}'.format(code['code'])
+        current_app.logger.debug(msg)
+
         cache.set(code['code'], associations, timeout=5*60)
         return
 
@@ -188,7 +191,9 @@ class BenwaValidator(RequestValidator):
         '''
 
         cached = cache.get(code)
-
+        msg = 'what /is/ cached?\n{}'.format(cached)
+        current_app.logger.debug(msg)
+        
         try:
             if cached['client_id'] != client_id:
                 return False
