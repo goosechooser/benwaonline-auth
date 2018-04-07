@@ -253,6 +253,8 @@ class BenwaValidator(RequestValidator):
         user = User.query.get(request.user['user_id'])
 
         if not user:
+            msg = 'User {} not found'.format(request.user['user_id'])
+            current_app.logger.debug(msg)
             return request.client.default_redirect_uri
 
         try:

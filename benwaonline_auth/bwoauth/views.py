@@ -43,7 +43,7 @@ def authorize():
     GET /authorize
     ?response_type=code
     &client_id=CLIENT_ID
-    &redirect_uri=given by the client
+    &redirect_uri=given_by_the_client
     &scope=openid%20profile
     &state=OPAQUE_VALUE
     '''
@@ -63,6 +63,7 @@ def authorize():
 
     # Errors that should be shown to the user on the provider website
     except errors.FatalClientError as err:
+        current_app.logger.debug(err)
         raise err
 
     # Errors embedded in the redirect URI back to the client
