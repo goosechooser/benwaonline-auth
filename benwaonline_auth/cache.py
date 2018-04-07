@@ -21,7 +21,7 @@ def json_deserializer(key, value, flags):
 
 cache = Client(
     (cfg.MEMCACHED_HOST, cfg.MEMCACHED_PORT),
-    connect_timeout=5,
+    connect_timeout=15,
     serializer=json_serializer,
     deserializer=json_deserializer
 )
