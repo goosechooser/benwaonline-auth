@@ -129,6 +129,8 @@ def authorize_twitter_callback():
 def issue_token():
     '''This route issues new access and refresh tokens.'''
     uri, http_method, body, headers = extract_params(request)
+    msg = 'Sending response for token request'
+    current_app.logger.info(msg)
 
     try:
         headers, body, status = server.create_token_response(uri, http_method, body, headers)
@@ -137,11 +139,13 @@ def issue_token():
         return make_response(body, status, headers)
 
     except errors.FatalClientError as err:
+        msg = 'Fatal error {}'.format(err)
+        current_app.logger.info(msg)
         raise err
 
     except errors.OAuth2Error as err:
         msg = 'Embedding error {}'.format(err)
-        current_app.logger.debug(msg)
+        current_app.logger.info(msg)
         return redirect(err.in_uri(err.redirect_uri))
 
 # @auth.route('/oauth/revoke', methods=['POST'])
