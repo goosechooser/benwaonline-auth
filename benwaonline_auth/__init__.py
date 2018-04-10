@@ -29,7 +29,7 @@ def create_app(config_name=None):
     Returns the Flask app.
     """
     app = Flask(__name__)
-    setup_logger_handlers(app)
+    # setup_logger_handlers(app)
     app.config.from_object(app_config[config_name])
 
     db.init_app(app)
