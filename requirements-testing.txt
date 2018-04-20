@@ -6,3 +6,4 @@ pytest-coverage==0.0
 pytest-flask==0.10.0
 pytest-mock==1.6.3
 requests-mock==1.4.0
+flask-pytest==0.0.5

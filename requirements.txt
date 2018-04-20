@@ -1,6 +1,6 @@
 asn1crypto==0.24.0
 astroid==1.6.0
-attrs==17.3.0
+attrs==17.4.0
 certifi==2017.11.5
 cffi==1.11.2
 chardet==3.0.4
@@ -11,7 +11,6 @@ ecdsa==0.13
 Flask==0.12.2
 flask-migrate==2.1.1
 Flask-OAuthlib==0.9.4
-flask-pytest==0.0.5
 flask-script==2.0.6
 Flask-SQLAlchemy==2.3.2
 future==0.16.0
