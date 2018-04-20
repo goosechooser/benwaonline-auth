@@ -1,0 +1,7 @@
+graft benwaonline_auth
+graft tests
+
+include requirements.txt
+include .coveragerc
+
+global-exclude *.py[co]

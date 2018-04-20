@@ -5,6 +5,7 @@ from flask import (
     make_response, current_app
 )
 from oauthlib.oauth2.rfc6749 import errors
+from oauthlib.oauth2.rfc6749.utils import scope_to_list
 from oauthlib.oauth2 import WebApplicationServer
 
 from benwaonline_auth.database import db
@@ -46,27 +47,29 @@ def authorize():
     GET /authorize
     ?response_type=code
     &client_id=CLIENT_ID
-    &redirect_uri=given by the client
+    &redirect_uri=given_by_the_client
     &scope=openid%20profile
     &state=OPAQUE_VALUE
     '''
     uri, http_method, body, headers = extract_params(request)
     try:
-        scopes, credentials = server.validate_authorization_request(
-            uri, http_method, body, headers)
+        scopes, credentials = server.validate_authorization_request(uri, http_method, body, headers)
 
-        # Need to examine more carefully and decide what I do/don't need
-        session['credentials'] = credentials['request'].body
-        # request was valid so now we move them to twitter to authenticate
+        session['credentials'] = {
+            k: credentials['request']._params[k]
+            for k in
+            ['audience', 'client_id', 'redirect_uri', 'response_type']
+        }
+        session['scopes'] = scope_to_list(scopes)
+
+        msg = 'Redirecting to twitter for authorization'
+        current_app.logger.info(msg)
         return redirect(url_for('auth.authorize_twitter'))
 
-    # Errors that should be shown to the user on the provider website
     except errors.FatalClientError as err:
-        msg = '{} {}\nbody:\n{}\nheaders:\n{}'.format(http_method, uri, json.dumps(body), headers)
-        current_app.logger.debug(msg)
+        current_app.logger.debug(err)
         raise err
 
-    # Errors embedded in the redirect URI back to the client
     except errors.OAuth2Error as err:
         msg = '{} {}\nbody:\n{}\nheaders:\n{}'.format(http_method, uri, json.dumps(body), headers)
         current_app.logger.debug(msg)
@@ -76,6 +79,9 @@ def authorize():
 def authorize_twitter():
     '''Directs user to twitter authorization page.'''
     callback_url = cfg.AUTH_URL_BASE + url_for('auth.authorize_twitter_callback', next=request.args.get('next'))
+    msg = 'Callback url is {}'.format(callback_url)
+    current_app.logger.debug(msg)
+
     return twitter.authorize(callback=callback_url)
 
 @auth.route('/authorize-twitter/callback')
@@ -89,39 +95,43 @@ def authorize_twitter_callback():
         'x_auth_expires': '0'
     }
     '''
+
     resp = twitter.authorized_response()
     if not resp:
         current_app.logger.debug('No authorized response from twitter')
-        redirect_uri = session['redirect_uri']
+        redirect_uri = cfg.FRONT_URL_BASE + '/authorize/callback?denied=True'
         session.clear()
         return redirect(redirect_uri)
 
     user = User.query.get(resp['user_id'])
     if not user:
+        msg = 'User id {} not found. Creating new entry'.format(resp['user_id'])
+        current_app.logger.debug(msg)
         user = User(user_id=resp['user_id'])
         db.session.add(user)
         db.session.commit()
 
-    # serialize me daddy
-    current_app.logger.debug('Whats the credentials like {}'.format(session['credentials']))
     session['credentials']['user'] = UserSchema().dump(user).data
 
     uri, http_method, body, headers = extract_params(request)
     msg = '{} {}\nbody:\n{}\nheaders:\n{}'.format(http_method, uri, json.dumps(body), headers)
     current_app.logger.debug(msg)
 
-    # now we create our authorization code and response
     try:
-        headers, body, status = server.create_authorization_response(
-            uri, http_method, body, headers, None, session['credentials'])
+        headers, _, _ = server.create_authorization_response(
+            uri, http_method, body, headers, session['scopes'], session['credentials'])
+        msg = 'Sending response to benwa.online for authorization request'
+        current_app.logger.info(msg)
+
+        return redirect(headers['Location'])
+
     except errors.FatalClientError as err:
         msg = '{} {}\nbody:\n{}\nheaders:\n{}'.format(http_method, uri, json.dumps(body), headers)
         current_app.logger.debug(msg)
         raise err
 
-    # Errors embedded in the redirect URI back to the client
     except errors.OAuth2Error as err:
-        msg = '{} {}\nbody:\n{}\nheaders:\n{}'.format(http_method, uri, json.dumps(body), headers)
+        msg = '{}'.format(err)
         current_app.logger.debug(msg)
         return redirect(err.in_uri(err.redirect_uri))
 
@@ -131,21 +141,23 @@ def authorize_twitter_callback():
 def issue_token():
     '''This route issues new access and refresh tokens.'''
     uri, http_method, body, headers = extract_params(request)
+    msg = 'Sending response for token request'
+    current_app.logger.info(msg)
 
     try:
         headers, body, status = server.create_token_response(uri, http_method, body, headers)
+        msg = 'Sending response for token request'
+        current_app.logger.info(msg)
         return make_response(body, status, headers)
 
-    # Errors that should be shown to the user on the provider website
     except errors.FatalClientError as err:
-        msg = '{} {}\nbody:\n{}\nheaders:\n{}'.format(http_method, uri, json.dumps(body), headers)
-        current_app.logger.debug(msg)
+        msg = 'Fatal error {}'.format(err)
+        current_app.logger.info(msg)
         raise err
 
-    # Errors embedded in the redirect URI back to the client
     except errors.OAuth2Error as err:
-        msg = '{} {}\nbody:\n{}\nheaders:\n{}'.format(http_method, uri, json.dumps(body), headers)
-        current_app.logger.debug(msg)
+        msg = 'Embedding error {}'.format(err)
+        current_app.logger.info(msg)
         return redirect(err.in_uri(err.redirect_uri))
 
 # @auth.route('/oauth/revoke', methods=['POST'])

@@ -1,0 +1,38 @@
+# My stuff
+DS_Store
+README.md
+scripts
+reports
+.vscode
+
+# CI
+.codeclimate.yml
+.travis.yml
+Jenkinsfile
+
+# Docker
+docker-compose.yml
+.docker
+Dockerfile
+
+# Git
+.git
+.gitignore
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.cache
+nosetests.xml
+coverage.xml
+
+# Byte-compiled / optimized / DLL files
+__pycache__
+*.py[cod]
+*$py.class
+
+# Virtual environment
+.env/
+.venv/
+venv/

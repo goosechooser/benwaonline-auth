@@ -1,0 +1,15 @@
+default_permissions: &default_permissions
+  - read
+  - write
+
+resources:
+  posts:
+    permissions: *default_permissions
+  tags:
+    permissions: *default_permissions
+  comments:
+    permissions: *default_permissions
+  likes:
+    permissions: *default_permissions
+
+

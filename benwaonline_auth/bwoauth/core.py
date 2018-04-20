@@ -4,27 +4,28 @@ from datetime import datetime, timedelta
 from jose import jwt
 from flask import logging, current_app
 from oauthlib.oauth2.rfc6749.request_validator import RequestValidator
+from oauthlib.oauth2.rfc6749.utils import list_to_scope, scope_to_list
 from oauthlib.common import generate_token
 
 from benwaonline_auth.database import db
 from benwaonline_auth.models import Client, Token, User
 from benwaonline_auth.schemas import UserSchema
-from benwaonline_auth.bwoauth import cache
+from benwaonline_auth.cache import cache
 from benwaonline_auth.config import app_config
 
 CFG = app_config[os.getenv('FLASK_CONFIG')]
 
 def generate_jwt_token(request):
     ''' Generates a JWT'''
-    now = (datetime.utcnow() - datetime(1970, 1, 1))
+    now = datetime.utcnow() - datetime(1970,1,1)
     exp_at = now + timedelta(seconds=3600)
-
     claims = {
         'iss': CFG.ISSUER,
         'aud': CFG.API_AUDIENCE,
         'sub': request.user['user_id'],
-        'iat': now.total_seconds(),
-        'exp': exp_at.total_seconds()
+        'scopes': request.scopes,
+        'iat': int(now.total_seconds()),
+        'exp': int(exp_at.total_seconds())
     }
     headers = {
         'typ': 'JWT',
@@ -41,6 +42,17 @@ def generate_refresh_token(request):
     '''
     return generate_token()
 
+def check_expiration(token):
+    '''Checks if token is expired or not.
+
+    Returns:
+        True if token is expired, False if not/
+    '''
+    now = datetime.utcnow()
+    expires_on = token.created_on + token.expires_in
+
+    return expires_on < now
+
 class BenwaValidator(RequestValidator):
     '''Validates requests of the Authorization Grant flow'''
     def validate_client_id(self, client_id, request, *args, **kwargs):
@@ -50,6 +62,7 @@ class BenwaValidator(RequestValidator):
             True if client_id is valid, False otherwise
         '''
         client = Client.query.get(client_id)
+
         if not client or client.blacklisted:
             current_app.logger.info('Unauthorized client request attempt')
             return False
@@ -75,16 +88,17 @@ class BenwaValidator(RequestValidator):
         '''
         return None
 
-    # Do this better
     def validate_scopes(self, client_id, scopes, client, request, *args, **kwargs):
         '''Check if requested scopes are in the client's allowed scopes.
 
-        Set the scopes in the request object.
+        Set the normalized set of scopes in the request object.
 
         Returns:
             True
         '''
-        request.scopes = request.client.default_scopes
+        req_scopes = [scope for scope in scopes if scope in client.allowed_scopes]
+        request.scopes = list_to_scope(req_scopes)
+
         return True
 
     def get_default_scopes(self, client_id, request, *args, **kwargs):
@@ -117,9 +131,9 @@ class BenwaValidator(RequestValidator):
             'state': request.state,
             'user': request.user
         }
-        cache.set(code['code'], associations, expire=5*60)
-        msg = 'Saved {} in the cache'.format(code['code'])
-        current_app.logger.debug(msg)
+
+        cache.set(code['code'], associations, expire=10*60)
+
         return
 
     # Token request
@@ -133,31 +147,34 @@ class BenwaValidator(RequestValidator):
             True if the client was authenticated, False otherwise
         '''
 
-        # Request didn't include 'client_id'
         try:
             client = Client.query.get(request.client_id)
         except TypeError as err:
-            msg = 'Request did not include a client_id'
-            current_app.logger.error(msg)
+            msg = 'Request did not include a id {} {}'.format(request, err)
+            current_app.logger.debug(msg)
             return False
 
-        # Didn't find client in db
         if not client:
-            msg = 'Supplied client_id {} was not found'.format(request.client_id)
-            current_app.logger.error(msg)
+            msg = 'Did not find Client with supplied id {}'.format(request.client_id)
+            current_app.logger.debug(msg)
             return False
 
-        is_allowed = True if not client.blacklisted and client.is_confidential else False
-        if not is_allowed:
-            msg = 'Client {} has been blacklisted or is public'.format(request.client_id)
-            current_app.logger.error(msg)
+        if client.blacklisted:
+            msg = 'Supplied Client with id {} is blacklisted'.format(request.client_id)
+            current_app.logger.debug(msg)
+            return False
 
-        if is_allowed and request.client_secret == client.client_secret:
+        if not client.is_confidential:
+            msg = 'Supplied Client with id {} is not a confidential client'.format(request.client_id)
+            current_app.logger.debug(msg)
+            return False
+
+        if request.client_secret == client.client_secret:
             request.client = client
             return True
 
-        msg = 'Secret for Client {} is incorrect'.format(request.client_id)
-        current_app.logger.error(msg)
+        msg = 'Supplied client secret is incorrect'
+        current_app.logger.debug(msg)
         return False
 
     def authenticate_client_id(self, client_id, request, *args, **kwargs):
@@ -175,10 +192,15 @@ class BenwaValidator(RequestValidator):
             True if the code belongs to the client, False otherwise
         '''
         cached = cache.get(code)
-        if not cached:
-            current_app.logger.debug('Something went wrong with the cache')
-        if cached['client_id'] != client_id:
-            current_app.logger.debug('The client_id saved with this code does not match the client_id in the request')
+
+        if cached is None:
+            msg = 'validate_code - Code {} not found, possibly invalidated'.format(code)
+            current_app.logger.info(msg)
+            return False
+
+        if cached.get('client_id', None) != client_id:
+            msg = 'validate_code - Client id in cache does not make supplied client id'
+            current_app.logger.info(msg)
             return False
 
         request.scopes = cached['scopes']
@@ -194,23 +216,18 @@ class BenwaValidator(RequestValidator):
         msg = 'This is probably where its dying\nclient_id: {}\nredirect_uri: {}\nclient: {}'.format(client_id, redirect_uri, client)
         current_app.logger.debug(msg)
         cached = cache.get(code)
-        msg = 'Does cache even exist still? {}'.format(cached)
-        current_app.logger.debug(msg)
 
-        msg = 'finally {}'.format(redirect_uri in client.redirect_uris)
-        current_app.logger.debug(msg)
+        if cached is None:
+            msg = 'confirm_redirect_uri - Code {} not found, possibly invalidated'.format(code)
+            current_app.logger.info(msg)
+            return False
 
         return redirect_uri == cached['redirect_uri']
 
     def validate_grant_type(self, client_id, grant_type, client, request, *args, **kwargs):
         # Clients should only be allowed to use one type of grant.
         # In this case, it must be "authorization_code" or "refresh_token"
-        if request.body['grant_type'] not in ['authorization_code', 'refresh_token']:
-            msg = 'Request grant type {} not authorization_code or refresh_token'.format(request.body['grant_type'])
-            current_app.logger.debug(msg)
-            return False
-
-        return True
+        return grant_type in [request.client.grant_type, 'refresh_token']
 
     # What we're saving is really the refresh token
     def save_bearer_token(self, token, request, *args, **kwargs):
@@ -243,26 +260,38 @@ class BenwaValidator(RequestValidator):
             - Resource Owner Password Credentials Grant (might not associate a client)
             - Client Credentials grant
         """
-
         user = User.query.get(request.user['user_id'])
-        msg = 'Saving the token.\nScopes looks like: {}'.format(request.scopes)
-        current_app.logger.debug(msg)
-        if not user.refresh_token or user.refresh_token.is_expired:
-            msg = 'Creating new refresh token for user {}'.format(user.user_id)
-            current_app.logger.debug(msg)
-            
-            refresh_token = Token(
-                code=token['refresh_token'],
-                expires_in=CFG.REFRESH_TOKEN_LIFESPAN,
-                scopes=' '.join(request.scopes)
-            )
 
-            # Consider keeping a seperate model for RevokedTokens?
-            db.session.add(refresh_token)
-            client = Client.query.get(request.client.client_id)
-            client.refresh_tokens.append(refresh_token)
-            user.refresh_token = refresh_token
-            db.session.commit()
+        if not user:
+            msg = 'User {} not found'.format(request.user['user_id'])
+            current_app.logger.debug(msg)
+            return request.client.default_redirect_uri
+
+        try:
+            user.refresh_token.is_expired = check_expiration(user.refresh_token)
+        except AttributeError:
+            msg = 'User does not have a refresh token\nCreating new refresh token for user {}'.format(user.user_id)
+            current_app.logger.info(msg)
+            self.save_refresh_token(token, request, user)
+        else:
+            if user.refresh_token.is_expired:
+                msg = 'Refresh token for user is expired\nCreating new refresh token for user {}'.format(user.user_id)
+                current_app.logger.info(msg)
+                self.save_refresh_token(token, request, user)
+
+        return request.client.default_redirect_uri
+
+    def save_refresh_token(self, token, request, user):
+        refresh_token = Token(
+            code=token['refresh_token'],
+            expires_in=CFG.REFRESH_TOKEN_LIFESPAN,
+            scopes=list_to_scope(request.scopes)
+        )
+
+        db.session.add(refresh_token)
+        request.client.refresh_tokens.append(refresh_token)
+        user.refresh_token = refresh_token
+        db.session.commit()
 
             msg = 'Added new refresh token to client {} and user {}'.format(client.client_id, user.user_id)
             current_app.logger.debug(msg)
@@ -272,8 +301,9 @@ class BenwaValidator(RequestValidator):
     def invalidate_authorization_code(self, client_id, code, request, *args, **kwargs):
         # Authorization codes are use once, invalidate it when a Bearer token
         # has been acquired.
-        msg = 'invalidated code {}'.format(code)
+        msg = 'Deleting code {} from the cache'.format(code)
         current_app.logger.debug(msg)
+
         return cache.delete(code)
 
     # Token refresh request
@@ -299,7 +329,8 @@ class BenwaValidator(RequestValidator):
             - Refresh Token Grant
         """
         token = Token.query.get(request.refresh_token)
-        token.is_expired = token.created_on < datetime.utcnow() - token.expires_in
+        token.is_expired = check_expiration(token)
+
         return token.is_expired
 
     def validate_refresh_token(self, refresh_token, client, request, *args, **kwargs):
@@ -318,10 +349,13 @@ class BenwaValidator(RequestValidator):
         try:
             token = Token.query.get(refresh_token)
         except TypeError:
+            msg = 'No refresh token supplied'
+            current_app.logger.debug(msg)
             return False
 
         if not token:
-            current_app.logger.debug('Token not found')
+            msg = 'Refresh token with code {} not found'.format(refresh_token)
+            current_app.logger.debug(msg)
             return False
 
         if token.client_id != client.client_id:

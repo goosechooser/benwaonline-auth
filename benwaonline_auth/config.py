@@ -10,17 +10,14 @@ def get_pem(fname):
     except FileNotFoundError:
         return None
 
-def get_secret(secret_name):
-    '''Returns value provided by a docker secret, otherwise returns env'''
-    try:
-        with open('/run/secrets/' + secret_name, 'r') as f:
-            data = f.read()
-            return data.strip()
-    except OSError:
-        return os.getenv(secret_name)
-
 class Config(object):
     BASE_DIR = BASE
+    DB_BASE_URI = 'mysql+pymysql://{}:{}@{}:{}/'.format(
+        os.getenv('MYSQL_USER', 'root'),
+        os.getenv('MYSQL_PASSWORD', 'root'),
+        os.getenv('MYSQL_HOST', '192.168.10.11'),
+        os.getenv('MYSQL_PORT', '3306')
+    )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SECRET_KEY = 'vsecret'
     TWITTER_CONSUMER_KEY = os.getenv('TWITTER_CONSUMER_KEY')
@@ -28,38 +25,35 @@ class Config(object):
     ISSUER = 'issuer'
     API_AUDIENCE = 'api audience'
     REFRESH_TOKEN_LIFESPAN = timedelta(days=14)
-    MEMCACHED_HOST = os.getenv('MEMCACHED_HOST', '192.168.99.100')
+    MEMCACHED_HOST = os.getenv('MEMCACHED_HOST', '192.168.10.11')
     MEMCACHED_PORT = int(os.getenv('MEMCACHED_PORT', 11211))
 
 class DevConfig(Config):
-    SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:root@localhost:3306/benwaonlineauth'
+    DB_NAME = os.getenv('DB_NAME', 'benwaonlineauth')
+    SQLALCHEMY_DATABASE_URI = Config.DB_BASE_URI + DB_NAME
     DEBUG = True
     CLIENT_ID = 'nice'
     CLIENT_SECRET = 'ok'
+    FRONT_URL_BASE = os.getenv('FRONT_URL_BASE', 'http://127.0.0.1:5000')
     AUTH_URL_BASE = os.getenv('AUTH_URL_BASE', 'http://127.0.0.1:5002')
     PRIVATE_KEY = get_pem('benwaauth_priv.pem')
     PUBLIC_KEY = get_pem('benwaauth_pub.pem')
 
 class TestConfig(Config):
-    DB_BASE_URI = 'mysql+pymysql://{}:{}@{}:{}/'.format(
-        os.getenv('MYSQL_USER', 'root'),
-        os.getenv('MYSQL_PASSWORD', ''),
-        os.getenv('MYSQL_HOST', '127.0.0.1'),
-        os.getenv('MYSQL_PORT', '3306')
-    )
-
-    SQLALCHEMY_DATABASE_URI = SQLALCHEMY_DATABASE_URI = DB_BASE_URI + 'benwaonlineauth_test'
+    DB_NAME = os.getenv('DB_NAME', 'benwaonlineauth_test')
+    SQLALCHEMY_DATABASE_URI = Config.DB_BASE_URI + DB_NAME
+    FRONT_URL_BASE = os.getenv('FRONT_URL_BASE', 'mock://mock-front')
     AUTH_URL_BASE = os.getenv('AUTH_URL_BASE')
     TESTING = True
     WTF_CSRF_ENABLED = False
     PRIVATE_KEY = get_pem('tests/data/benwaonline_auth_test_priv.pem')
     PUBLIC_KEY = get_pem('tests/data/benwaonline_auth_test_pub.pem')
     MEMCACHED_PORT = int(os.getenv('MEMCACHED_PORT', 11212))
-
+    
 class ProdConfig(Config):
     DB_BASE_URI = 'mysql+pymysql://{}:{}@{}:{}/'.format(
-        get_secret('MYSQL_USER'),
-        get_secret('MYSQL_PASSWORD'),
+        os.getenv('MYSQL_USER'),
+        os.getenv('MYSQL_PASSWORD'),
         os.getenv('MYSQL_HOST'),
         os.getenv('MYSQL_PORT')
     )
@@ -67,6 +61,7 @@ class ProdConfig(Config):
     DEBUG = False
     ISSUER = 'https://benwa.online'
     API_AUDIENCE = 'https://benwa.online/api'
+    FRONT_URL_BASE = os.getenv('FRONT_URL_BASE')
     AUTH_URL_BASE = os.getenv('AUTH_URL_BASE')
     SECRET_KEY = os.getenv('SECRET_KEY_AUTH')
     PRIVATE_KEY = get_pem('benwaauth_priv.pem')

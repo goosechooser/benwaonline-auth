@@ -3,7 +3,7 @@ sudo: required
 language: python
 
 python:
-  - "3.5"
+  - "3.6"
 
 env:
   global:
@@ -12,31 +12,18 @@ env:
     - MEMCACHED_PORT=11211
 
 services:
-  - docker
+  - memcached
   - mysql
   - memcached
 
 before_install:
   - mysql -u root -e 'CREATE DATABASE benwaonlineauth_test;'
   - mysql -u root -e "GRANT ALL PRIVILEGES ON benwaonlineauth_test.* TO 'root'@'%';";
-  # - docker build -t goosechooser/benwaonline-auth:latest .
-  # - docker run -d goosechooser/benwaonline-auth:latest
-  # - docker ps -a
 
 install:
   - pip install -r requirements.txt
+  - pip install -r requirements-testing.txt
   - pip install .
 
 script:
   - pytest tests
-
-after_success:
-  - docker build -t benwaonline-auth .
-  - docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
-  - if [ "$TRAVIS_BRANCH" == "master" ]; then
-      docker tag benwaonline-auth:latest "$DOCKER_USERNAME"/benwaonline-auth:latest;
-      docker push "$DOCKER_USERNAME"/benwaonline-auth:latest;
-    else
-      docker tag benwaonline-auth:latest "$DOCKER_USERNAME"/benwaonline-auth:dev;
-      docker push "$DOCKER_USERNAME"/benwaonline-auth:dev;
-    fi
