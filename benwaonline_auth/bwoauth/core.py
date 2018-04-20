@@ -77,6 +77,8 @@ class BenwaValidator(RequestValidator):
         Returns:
             True if the redirect_uri in the request is allowed, False otherwise
         '''
+        msg = 'Supplied uri: {}\nUri stored in request: {}'.format(redirect_uri, request.client.redirect_uris)
+        current_app.logger.debug(msg)
         return False if redirect_uri not in request.client.redirect_uris else True
 
     def get_default_redirect_uri(self, client_id, request, *args, **kwargs):
@@ -118,9 +120,10 @@ class BenwaValidator(RequestValidator):
 
 
     # Post-authorization
-
     def save_authorization_code(self, client_id, code, request, *args, **kwargs):
         '''Saves the authorization code and any other pertinent attributes.'''
+        msg = 'Scopes in the request: {}'.format(request.scopes)
+        current_app.logger.debug(msg)
         associations = {
             'scopes': request.scopes,
             'redirect_uri': request.redirect_uri,
@@ -201,6 +204,8 @@ class BenwaValidator(RequestValidator):
             return False
 
         request.scopes = cached['scopes']
+        msg = 'Scopes in the request: {}'.format(request.scopes)
+        current_app.logger.debug(msg)
         request.user = cached['user']
         return True
 
@@ -208,6 +213,8 @@ class BenwaValidator(RequestValidator):
         # You did save the redirect uri with the authorization code right?
         # When we generate our authorization code we must save the redirect_uri
         # here we check
+        msg = 'This is probably where its dying\nclient_id: {}\nredirect_uri: {}\nclient: {}'.format(client_id, redirect_uri, client)
+        current_app.logger.debug(msg)
         cached = cache.get(code)
 
         if cached is None:
@@ -286,6 +293,9 @@ class BenwaValidator(RequestValidator):
         user.refresh_token = refresh_token
         db.session.commit()
 
+            msg = 'Added new refresh token to client {} and user {}'.format(client.client_id, user.user_id)
+            current_app.logger.debug(msg)
+
         return
 
     def invalidate_authorization_code(self, client_id, code, request, *args, **kwargs):
@@ -304,6 +314,8 @@ class BenwaValidator(RequestValidator):
         # access token if the client did not specify a scope during the
         # request.
         token = Token.query.get(refresh_token)
+        msg = 'Scopes in the token: {}'.format(token.scopes)
+        current_app.logger.debug(msg)
         return token.scopes
 
     def rotate_refresh_token(self, request):

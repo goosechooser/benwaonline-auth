@@ -1,3 +1,4 @@
+import sys
 import json
 import logging
 import yaml
@@ -29,7 +30,7 @@ def create_app(config_name=None):
     Returns the Flask app.
     """
     app = Flask(__name__)
-    # setup_logger_handlers(app)
+    setup_logger_handlers(app)
     app.config.from_object(app_config[config_name])
 
     db.init_app(app)
@@ -43,9 +44,10 @@ def create_app(config_name=None):
         permissions = permissions_loader('benwaonline_auth/scopes.yml')
         init_clients(app, db.session, permissions)
 
-    @app.route('/.well-known/jwks.json')
-    def jwks():
-        return jsonify(JWKS), 200
+    if config_name != 'prod':
+        @app.route('/.well-known/jwks.json')
+        def jwks():
+            return jsonify(JWKS), 200
 
     return app
 

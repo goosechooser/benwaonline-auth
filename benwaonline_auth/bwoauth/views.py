@@ -1,5 +1,5 @@
 import os
-
+import json
 from flask import (
     request, url_for, session, redirect,
     make_response, current_app
@@ -27,9 +27,13 @@ server = WebApplicationServer(
 @auth.errorhandler(errors.FatalClientError)
 def handle_invalid_usage(error):
     '''Error handler.'''
-    response = error.json
-    current_app.logger.debug(request, response)
-    return response, 500
+    response = dict(error.twotuples)
+    params = {
+        'redirect_uri': error.redirect_uri,
+        'client_id': error.client_id,
+        'scopes': error.scopes
+    }
+    return json.dumps({**response, **params}), 500
 
 def extract_params(request):
     '''Extracts pertinent info from a request.'''
@@ -67,7 +71,8 @@ def authorize():
         raise err
 
     except errors.OAuth2Error as err:
-        current_app.logger.debug(err)
+        msg = '{} {}\nbody:\n{}\nheaders:\n{}'.format(http_method, uri, json.dumps(body), headers)
+        current_app.logger.debug(msg)
         return redirect(err.in_uri(err.redirect_uri))
 
 @auth.route('/authorize-twitter')
@@ -107,7 +112,10 @@ def authorize_twitter_callback():
         db.session.commit()
 
     session['credentials']['user'] = UserSchema().dump(user).data
+
     uri, http_method, body, headers = extract_params(request)
+    msg = '{} {}\nbody:\n{}\nheaders:\n{}'.format(http_method, uri, json.dumps(body), headers)
+    current_app.logger.debug(msg)
 
     try:
         headers, _, _ = server.create_authorization_response(
@@ -118,12 +126,16 @@ def authorize_twitter_callback():
         return redirect(headers['Location'])
 
     except errors.FatalClientError as err:
+        msg = '{} {}\nbody:\n{}\nheaders:\n{}'.format(http_method, uri, json.dumps(body), headers)
+        current_app.logger.debug(msg)
         raise err
 
     except errors.OAuth2Error as err:
         msg = '{}'.format(err)
         current_app.logger.debug(msg)
         return redirect(err.in_uri(err.redirect_uri))
+
+    return redirect(headers['Location'])
 
 @auth.route('/oauth/token', methods=['POST'])
 def issue_token():
