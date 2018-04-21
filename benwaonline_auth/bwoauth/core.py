@@ -293,8 +293,8 @@ class BenwaValidator(RequestValidator):
         user.refresh_token = refresh_token
         db.session.commit()
 
-            msg = 'Added new refresh token to client {} and user {}'.format(client.client_id, user.user_id)
-            current_app.logger.debug(msg)
+        msg = 'Added new refresh token to client {} and user {}'.format(request.client.client_id, user.user_id)
+        current_app.logger.debug(msg)
 
         return
 
