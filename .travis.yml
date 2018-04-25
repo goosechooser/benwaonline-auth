@@ -8,13 +8,12 @@ python:
 env:
   global:
     - FLASK_CONFIG=test
-    - MEMCACHED_HOST=localhost
-    - MEMCACHED_PORT=11211
+    - REDIS_HOST=localhost
+    - REDIS_PORT=6379
 
 services:
-  - memcached
+  - redis-server
   - mysql
-  - memcached
 
 before_install:
   - mysql -u root -e 'CREATE DATABASE benwaonlineauth_test;'

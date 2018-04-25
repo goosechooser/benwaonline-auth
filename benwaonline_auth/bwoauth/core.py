@@ -132,7 +132,7 @@ class BenwaValidator(RequestValidator):
             'user': request.user
         }
 
-        cache.set(code['code'], associations, expire=10*60)
+        cache.set(code['code'], associations, timeout=10*60)
 
         return
 

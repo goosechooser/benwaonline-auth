@@ -8,6 +8,7 @@ from sqlalchemy import create_engine
 from oauthlib.oauth2.rfc6749.utils import list_to_scope, scope_to_list
 
 from benwaonline_auth.oauth import oauth
+from benwaonline_auth.cache import cache
 from benwaonline_auth.config import app_config
 from benwaonline_auth.database import db
 from benwaonline_auth.bwoauth import auth
@@ -35,6 +36,7 @@ def create_app(config_name=None):
 
     db.init_app(app)
     oauth.init_app(app)
+    cache.init_app(app)
     app.register_blueprint(auth)
 
     @app.cli.command()

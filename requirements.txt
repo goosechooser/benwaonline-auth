@@ -6,6 +6,7 @@ click==6.7
 cryptography==2.1.4
 ecdsa==0.13
 Flask==0.12.2
+flask-caching==1.4.0
 flask-migrate==2.1.1
 Flask-OAuthlib==0.9.4
 flask-script==2.0.6
@@ -20,11 +21,10 @@ marshmallow==2.15.0
 oauthlib==2.0.7
 pycparser==2.18
 pycryptodome==3.5.1
-pymemcache==1.4.4
 PyMySQL==0.8.0
 python-jose==2.0.2
-pymemcache==1.4.4
 PyYAML==3.12
+redis==2.10.6
 requests==2.18.4
 requests-oauthlib==0.8.0
 six==1.11.0
