@@ -213,8 +213,6 @@ class BenwaValidator(RequestValidator):
         # You did save the redirect uri with the authorization code right?
         # When we generate our authorization code we must save the redirect_uri
         # here we check
-        msg = 'This is probably where its dying\nclient_id: {}\nredirect_uri: {}\nclient: {}'.format(client_id, redirect_uri, client)
-        current_app.logger.debug(msg)
         cached = cache.get(code)
 
         if cached is None:
