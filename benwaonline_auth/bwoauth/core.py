@@ -16,7 +16,7 @@ REFRESH_TOKEN_LIFESPAN = timedelta(days=14)
 def generate_jwt_token(request):
     ''' Generates a JWT'''
     now = datetime.utcnow() - datetime(1970,1,1)
-    exp_at = now + timedelta(seconds=10)
+    exp_at = now + timedelta(seconds=3600)
     claims = {
         'iss': current_app.config['ISSUER'],
         'aud': current_app.config['API_AUDIENCE'],
