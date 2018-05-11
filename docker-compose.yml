@@ -6,12 +6,13 @@ services:
             context: .
             target: testing
         environment:
-            - FLASK_CONFIG=test
+            - FLASK_ENV=testing
             - MYSQL_HOST=mysql
+            - MYSQL_PORT=3306
             - MYSQL_USER=jenkins
             - MYSQL_PASSWORD=jenkins
-            - API_URL=http://benwaonline-api
-            - API_PORT=420
+            - REDIS_HOST=redis
+            - REDIS_PORT=6379
         command: py.test --cov-config .coveragerc --cov=benwaonline_auth --cov-report xml tests/
         volumes:
             - ./work_dir:/testing/reports
