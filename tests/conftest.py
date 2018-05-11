@@ -1,8 +1,12 @@
+import os
 from datetime import timedelta
 import pytest
 
+from flask.cli import load_dotenv
+load_dotenv()
+
 from benwaonline_auth import create_app
-from benwaonline_auth.config import TestConfig
+from benwaonline_auth.cache import cache as _cache
 from benwaonline_auth.database import db as _db
 from benwaonline_auth import models
 
@@ -16,14 +20,19 @@ def dbopt(request):
 
 @pytest.fixture(scope='session')
 def app(dbopt):
-    app = create_app('test')
-    app.config.update(TestConfig.__dict__)
+
+    app = create_app('testing')
 
     if dbopt == 'sqlite':
         app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite://'
 
     with app.app_context():
         yield app
+
+@pytest.fixture(scope='function')
+def cache():
+    yield _cache
+    _cache.clear()
 
 @pytest.fixture(scope='session')
 def db(app):

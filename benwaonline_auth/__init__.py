@@ -1,18 +1,17 @@
-import sys
-import json
 import logging
-import yaml
-from marshmallow import pprint
-from flask import Flask, g, url_for, request, flash, redirect, jsonify, current_app
-from sqlalchemy import create_engine
-from oauthlib.oauth2.rfc6749.utils import list_to_scope, scope_to_list
+import os
 
-from benwaonline_auth.oauth import oauth
-from benwaonline_auth.cache import cache
-from benwaonline_auth.config import app_config
-from benwaonline_auth.database import db
+import yaml
+from flask import (Flask, current_app, flash, g, json, jsonify, redirect,
+                   request, url_for)
+from oauthlib.oauth2.rfc6749.utils import list_to_scope, scope_to_list
+from sqlalchemy import create_engine
+
+from benwaonline_auth import config, models
 from benwaonline_auth.bwoauth import auth
-from benwaonline_auth import models
+from benwaonline_auth.cache import cache
+from benwaonline_auth.database import db
+from benwaonline_auth.oauth import oauth
 
 with open('jwks.json', 'r') as f:
     JWKS = json.load(f)
@@ -31,12 +30,25 @@ def create_app(config_name=None):
     Returns the Flask app.
     """
     app = Flask(__name__)
-    setup_logger_handlers(app)
-    app.config.from_object(app_config[config_name])
+
+    if not config_name:
+        config_name = os.getenv('FLASK_ENV')
+
+    if config_name == 'production':
+        setup_logger_handlers(app)
+
+    app.config.from_object(config.app_config[config_name])
 
     db.init_app(app)
     oauth.init_app(app)
-    cache.init_app(app)
+    cache.init_app(app, config={
+        'CACHE_TYPE': 'redis',
+        'CACHE_DEFAULT_TIMEOUT': 5,
+        'CACHE_REDIS_HOST': os.getenv('REDIS_HOST'),
+        'CACHE_REDIS_PORT': os.getenv('REDIS_PORT'),
+        'CACHE_KEY_PREFIX': 'benwaonline-auth:'
+    })
+
     app.register_blueprint(auth)
 
     @app.cli.command()
@@ -64,6 +76,7 @@ def init_db(app):
     db.create_all()
 
 # need a better way to pull all this info
+# refactor this to a click script tbh
 def init_clients(app, session, default_scopes=None):
     scopes = default_scopes or ['ham', 'eggs']
     client = models.Client(
