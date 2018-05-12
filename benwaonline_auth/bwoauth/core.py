@@ -1,8 +1,7 @@
 '''This module handles the validation (and responding to) authentication requests'''
-import os
 from datetime import datetime, timedelta
 from jose import jwt
-from flask import logging, current_app
+from flask import current_app
 from oauthlib.oauth2.rfc6749.request_validator import RequestValidator
 from oauthlib.oauth2.rfc6749.utils import list_to_scope, scope_to_list
 from oauthlib.common import generate_token
@@ -11,17 +10,16 @@ from benwaonline_auth.database import db
 from benwaonline_auth.models import Client, Token, User
 from benwaonline_auth.schemas import UserSchema
 from benwaonline_auth.cache import cache
-from benwaonline_auth.config import app_config
 
-CFG = app_config[os.getenv('FLASK_CONFIG')]
+REFRESH_TOKEN_LIFESPAN = timedelta(days=14)
 
 def generate_jwt_token(request):
     ''' Generates a JWT'''
     now = datetime.utcnow() - datetime(1970,1,1)
     exp_at = now + timedelta(seconds=3600)
     claims = {
-        'iss': CFG.ISSUER,
-        'aud': CFG.API_AUDIENCE,
+        'iss': current_app.config['ISSUER'],
+        'aud': current_app.config['API_AUDIENCE'],
         'sub': request.user['user_id'],
         'scopes': request.scopes,
         'iat': int(now.total_seconds()),
@@ -32,7 +30,7 @@ def generate_jwt_token(request):
         'alg': 'RS256',
         'kid': 'benwaonline'
     }
-    return jwt.encode(claims, CFG.PRIVATE_KEY, algorithm='RS256', headers=headers)
+    return jwt.encode(claims, current_app.config['PRIVATE_KEY'], algorithm='RS256', headers=headers)
 
 def generate_refresh_token(request):
     '''Generates a refresh token.
@@ -282,9 +280,13 @@ class BenwaValidator(RequestValidator):
     def save_refresh_token(self, token, request, user):
         refresh_token = Token(
             code=token['refresh_token'],
-            expires_in=CFG.REFRESH_TOKEN_LIFESPAN,
+            expires_in=REFRESH_TOKEN_LIFESPAN,
             scopes=list_to_scope(request.scopes)
         )
+
+        #that elusive bug
+        msg = 'saving refresh token with\ncode: {}\nexpires in: {}\nscopes: {}'.format(token['refresh_token'], REFRESH_TOKEN_LIFESPAN, list_to_scope(request.scopes))
+        current_app.logger.debug(msg)
 
         db.session.add(refresh_token)
         request.client.refresh_tokens.append(refresh_token)

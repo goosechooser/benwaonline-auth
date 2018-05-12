@@ -1,8 +1,7 @@
 import os
-import json
 from flask import (
     request, url_for, session, redirect,
-    make_response, current_app
+    make_response, current_app, json, jsonify
 )
 from oauthlib.oauth2.rfc6749 import errors
 from oauthlib.oauth2.rfc6749.utils import scope_to_list
@@ -14,9 +13,7 @@ from benwaonline_auth.schemas import UserSchema
 from benwaonline_auth.oauth import twitter
 from benwaonline_auth.bwoauth import auth
 from benwaonline_auth.bwoauth.core import BenwaValidator, generate_jwt_token, generate_refresh_token
-from benwaonline_auth.config import app_config
 
-cfg = app_config[os.getenv('FLASK_CONFIG')]
 validator = BenwaValidator()
 server = WebApplicationServer(
     validator,
@@ -33,7 +30,7 @@ def handle_invalid_usage(error):
         'client_id': error.client_id,
         'scopes': error.scopes
     }
-    return json.dumps({**response, **params}), 500
+    return jsonify({**response, **params}), 500
 
 def extract_params(request):
     '''Extracts pertinent info from a request.'''
@@ -78,7 +75,7 @@ def authorize():
 @auth.route('/authorize-twitter')
 def authorize_twitter():
     '''Directs user to twitter authorization page.'''
-    callback_url = cfg.AUTH_URL_BASE + url_for('auth.authorize_twitter_callback', next=request.args.get('next'))
+    callback_url = current_app.config['AUTH_URL'] + url_for('auth.authorize_twitter_callback', next=request.args.get('next'))
     msg = 'Callback url is {}'.format(callback_url)
     current_app.logger.debug(msg)
 
@@ -99,7 +96,7 @@ def authorize_twitter_callback():
     resp = twitter.authorized_response()
     if not resp:
         current_app.logger.debug('No authorized response from twitter')
-        redirect_uri = cfg.FRONT_URL_BASE + '/authorize/callback?denied=True'
+        redirect_uri = current_app.config['FRONT_URL'] + '/authorize/callback?denied=True'
         session.clear()
         return redirect(redirect_uri)
 

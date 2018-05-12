@@ -2,7 +2,6 @@ from datetime import timedelta, datetime, date
 import pytest
 from oauthlib.common import Request
 
-from benwaonline_auth.cache import cache
 from benwaonline_auth.bwoauth.core import BenwaValidator
 from benwaonline_auth.models import Client, User, Token
 
@@ -144,7 +143,7 @@ def test_validate_response_type(request_, response_type, valid):
 
     assert validator.validate_response_type(test_client.client_id, response_type, test_client, request_) == valid
 
-def test_save_authorization_code():
+def test_save_authorization_code(cache):
     request = Request('does it matter', body=cache_entry())
     validator.save_authorization_code(request.client.client_id, {'code': 'code'}, request)
 
