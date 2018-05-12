@@ -7,7 +7,7 @@ python:
 
 env:
   global:
-    - FLASK_CONFIG=test
+    - FLASK_ENV=testing
     - REDIS_HOST=localhost
     - REDIS_PORT=6379
 

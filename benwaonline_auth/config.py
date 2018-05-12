@@ -15,6 +15,7 @@ class Config(object):
         os.getenv('MYSQL_PORT')
     )
     DB_NAME = os.getenv('DB_NAME')
+    SQLALCHEMY_DATABASE_URI = DB_BASE_URI + DB_NAME
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SECRET_KEY = os.getenv('SECRET_KEY_AUTH')
@@ -30,8 +31,6 @@ class Config(object):
     PUBLIC_KEY = get_pem(os.getenv('PUBLIC_KEY'))
 
 class DevConfig(Config):
-    DB_NAME = os.getenv('DB_NAME', 'benwaonlineauth')
-    SQLALCHEMY_DATABASE_URI = Config.DB_BASE_URI + DB_NAME
     CLIENT_ID = 'nice'
     CLIENT_SECRET = 'ok'
     FRONT_URL = os.getenv('FRONT_URL', 'http://127.0.0.1:5000')
