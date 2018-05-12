@@ -20,6 +20,5 @@ REDIS_PORT=6379
 SECRET_KEY_AUTH=vsecret
 PRIVATE_KEY=benwaauth_priv.pem
 PUBLIC_KEY=benwaauth_pub.pem
-AUTH_HOST=127.0.0.1
+AUTH_HOST=http://127.0.0.1
 AUTH_PORT=5002
-AUTH_URL=http://${AUTH_HOST}:${AUTH_PORT}

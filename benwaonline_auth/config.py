@@ -25,16 +25,14 @@ class Config(object):
     API_AUDIENCE = 'api audience'
     REDIS_HOST = os.getenv('REDIS_HOST')
     REDIS_PORT = os.getenv('REDIS_PORT')
-    FRONT_URL = os.getenv('FRONT_URL')
-    AUTH_URL = os.getenv('AUTH_URL')
+    FRONT_URL = os.getenv('FRONT_HOST')
+    AUTH_URL = '{}:{}'.format(os.getenv('AUTH_HOST'), os.getenv('AUTH_PORT', ''))
     PRIVATE_KEY = get_pem(os.getenv('PRIVATE_KEY'))
     PUBLIC_KEY = get_pem(os.getenv('PUBLIC_KEY'))
 
 class DevConfig(Config):
     CLIENT_ID = 'nice'
     CLIENT_SECRET = 'ok'
-    FRONT_URL = os.getenv('FRONT_URL', 'http://127.0.0.1:5000')
-    AUTH_URL = os.getenv('AUTH_URL', 'http://127.0.0.1:5002')
 
 class TestConfig(Config):
     DB_NAME = 'benwaonlineauth_test'
