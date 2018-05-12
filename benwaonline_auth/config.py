@@ -19,8 +19,6 @@ class Config(object):
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SECRET_KEY = os.getenv('SECRET_KEY_AUTH')
-    TWITTER_CONSUMER_KEY = os.getenv('TWITTER_CONSUMER_KEY')
-    TWITTER_CONSUMER_SECRET = os.getenv('TWITTER_CONSUMER_SECRET')
     ISSUER = 'issuer'
     API_AUDIENCE = 'api audience'
     REDIS_HOST = os.getenv('REDIS_HOST')
@@ -29,6 +27,15 @@ class Config(object):
     AUTH_URL = '{}:{}'.format(os.getenv('AUTH_HOST'), os.getenv('AUTH_PORT', ''))
     PRIVATE_KEY = get_pem(os.getenv('PRIVATE_KEY'))
     PUBLIC_KEY = get_pem(os.getenv('PUBLIC_KEY'))
+
+    TWITTER = {
+        'consumer_key': os.getenv('TWITTER_CONSUMER_KEY'),
+        'consumer_secret': os.getenv('TWITTER_CONSUMER_SECRET'),
+        'base_url': 'https://api.twitter.com',
+        'request_token_url': 'oauth/request_token',
+        'access_token_url': 'oauth/access_token',
+        'authorize_url': 'oauth/authenticate'
+    }
 
 class DevConfig(Config):
     CLIENT_ID = 'nice'
