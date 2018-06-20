@@ -24,6 +24,7 @@ class Config(object):
     REDIS_HOST = os.getenv('REDIS_HOST')
     REDIS_PORT = os.getenv('REDIS_PORT')
     FRONT_URL = os.getenv('FRONT_HOST')
+    AUTH_HOST = os.getenv('AUTH_HOST')
     AUTH_URL = '{}:{}'.format(os.getenv('AUTH_HOST'), os.getenv('AUTH_PORT', ''))
     PRIVATE_KEY = get_pem(os.getenv('PRIVATE_KEY'))
     PUBLIC_KEY = get_pem(os.getenv('PUBLIC_KEY'))

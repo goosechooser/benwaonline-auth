@@ -75,7 +75,7 @@ def authorize():
 @auth.route('/authorize-twitter')
 def authorize_twitter():
     '''Directs user to twitter authorization page.'''
-    callback_url = current_app.config['AUTH_URL'] + url_for('auth.authorize_twitter_callback', next=request.args.get('next'))
+    callback_url = current_app.config['AUTH_HOST'] + url_for('auth.authorize_twitter_callback', next=request.args.get('next'))
     msg = 'Callback url is {}'.format(callback_url)
     current_app.logger.debug(msg)
 
