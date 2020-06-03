@@ -77,7 +77,7 @@ class TestAuthorizeTwitterCallback(object):
             sess['credentials'] = mock_credential()
 
         twitter_resp = mock_twitter_response()
-        mocker.patch('benwaonline_auth.bwoauth.views.twitter.authorized_response', return_value=twitter_resp)
+        mocker.patch('benwaonline_auth.bwoauth.views.twitter.authorize_access_token', return_value=twitter_resp)
         resp = client.get(url_for('auth.authorize_twitter_callback'))
         assert resp.status_code == 302
         assert '?code=' in resp.headers['Location']
@@ -90,7 +90,7 @@ class TestAuthorizeTwitterCallback(object):
         twitter_resp = mock_twitter_response()
         twitter_resp['user_id'] = '720'
 
-        mocker.patch('benwaonline_auth.bwoauth.views.twitter.authorized_response', return_value=twitter_resp)
+        mocker.patch('benwaonline_auth.bwoauth.views.twitter.authorize_access_token', return_value=twitter_resp)
         resp = client.get(url_for('auth.authorize_twitter_callback'))
 
         assert resp.status_code == 302
@@ -104,7 +104,7 @@ class TestAuthorizeTwitterCallback(object):
             del sess['credentials']['redirect_uri']
 
         twitter_resp = mock_twitter_response()
-        mocker.patch('benwaonline_auth.bwoauth.views.twitter.authorized_response', return_value=twitter_resp)
+        mocker.patch('benwaonline_auth.bwoauth.views.twitter.authorize_access_token', return_value=twitter_resp)
         resp = client.get(url_for('auth.authorize_twitter_callback'))
 
         assert resp.status_code == 500
