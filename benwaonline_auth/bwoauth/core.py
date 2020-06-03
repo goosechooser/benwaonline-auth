@@ -363,6 +363,6 @@ class BenwaValidator(RequestValidator):
             return False
 
         user = User.query.get(token.user_id)
-        request.user = UserSchema().dump(user).data
+        request.user = UserSchema().dump(user)
 
         return True

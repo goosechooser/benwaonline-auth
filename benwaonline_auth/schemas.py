@@ -7,7 +7,7 @@ class UserSchema(Schema):
     created_on = fields.DateTime()
 
     @post_load
-    def make_user(self, data):
+    def make_user(self, data, **kwargs):
         return User(**data)
 
 class TokenSchema(Schema):
@@ -19,7 +19,7 @@ class TokenSchema(Schema):
     scopes = fields.Str()
 
     @post_load
-    def make_token(self, data):
+    def make_token(self, data, **kwargs):
         return Token(**data)
 
 class ClientSchema(Schema):
@@ -34,5 +34,5 @@ class ClientSchema(Schema):
     refresh_tokens = fields.List(fields.Nested('TokenSchema'))
 
     @post_load
-    def make_client(self, data):
+    def make_client(self, data, **kwargs):
         return Client(**data)
