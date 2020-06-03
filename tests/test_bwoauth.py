@@ -66,7 +66,7 @@ def test_no_authorize_twitter_callback(client, session, mocker):
     with client.session_transaction() as sess:
         sess['redirect_uri'] = 'http://test/callback'
 
-    mocker.patch('benwaonline_auth.bwoauth.views.twitter.authorized_response', return_value=None)
+    mocker.patch('benwaonline_auth.bwoauth.views.twitter.authorize_access_token', return_value=None)
     resp = client.get(url_for('auth.authorize_twitter_callback'))
     assert resp.status_code == 302
 

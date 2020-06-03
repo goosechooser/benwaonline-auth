@@ -93,7 +93,7 @@ def authorize_twitter_callback():
     }
     '''
 
-    resp = twitter.authorized_response()
+    resp = twitter.authorize_access_token()
     if not resp:
         current_app.logger.debug('No authorized response from twitter')
         redirect_uri = current_app.config['FRONT_URL'] + '/authorize/callback?denied=True'
