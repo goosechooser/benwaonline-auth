@@ -108,7 +108,7 @@ def authorize_twitter_callback():
         db.session.add(user)
         db.session.commit()
 
-    session['credentials']['user'] = UserSchema().dump(user).data
+    session['credentials']['user'] = UserSchema().dump(user)
 
     uri, http_method, body, headers = extract_params(request)
     msg = '{} {}\nbody:\n{}\nheaders:\n{}'.format(http_method, uri, json.dumps(body), headers)
