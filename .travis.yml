@@ -16,7 +16,7 @@ services:
   - mysql
 
 before_install:
-  - mysql -e "use root; CREATE DATABASE benwaonlineauth_test;""
+  - mysql -e "use root; CREATE DATABASE benwaonlineauth_test;"
   - mysql -e "use root; GRANT ALL PRIVILEGES ON benwaonlineauth_test.* TO 'root'@'%';";
 
 install:
