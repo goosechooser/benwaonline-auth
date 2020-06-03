@@ -16,8 +16,8 @@ services:
   - mysql
 
 before_install:
-  - mysql -e "use root; CREATE DATABASE benwaonlineauth_test;"
-  - mysql -e "use root; GRANT ALL PRIVILEGES ON benwaonlineauth_test.* TO 'root'@'%';";
+  - mysql -u root -e 'CREATE DATABASE benwaonlineauth_test;'
+  - mysql -u root -e "use benwaonlineauth_test; GRANT ALL PRIVILEGES ON benwaonlineauth_test.* TO 'root'@'%';";
 
 install:
   - pip install pipenv
