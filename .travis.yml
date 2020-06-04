@@ -7,23 +7,21 @@ python:
 
 env:
   global:
-    - FLASK_CONFIG=test
-    - MEMCACHED_HOST=localhost
-    - MEMCACHED_PORT=11211
+    - FLASK_ENV=testing
+    - REDIS_HOST=localhost
+    - REDIS_PORT=6379
 
 services:
-  - memcached
+  - redis-server
   - mysql
-  - memcached
 
 before_install:
   - mysql -u root -e 'CREATE DATABASE benwaonlineauth_test;'
-  - mysql -u root -e "GRANT ALL PRIVILEGES ON benwaonlineauth_test.* TO 'root'@'%';";
+  - mysql -u root -e "GRANT ALL PRIVILEGES ON *.* TO 'root'@'localhost';"
 
 install:
-  - pip install -r requirements.txt
-  - pip install -r requirements-testing.txt
-  - pip install .
+  - pip install pipenv
+  - pipenv install --dev
 
 script:
   - pytest tests
