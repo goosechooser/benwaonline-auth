@@ -14,6 +14,7 @@ colorama = "*"
 coverage = "*"
 attrs = "*"
 pytest-mock = "*"
+pylint = "*"
 
 [packages]
 asn1crypto = "==0.24.0"
