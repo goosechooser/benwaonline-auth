@@ -11,8 +11,7 @@ FROM python:3.6 as testing
 COPY --from=packages /tmp/all-requirements.txt /tmp/requirements.txt
 COPY --from=packages /tmp/all-wheelhouse /tmp/wheelhouse
 
-RUN pip install --no-index --find-links=/tmp/wheelhouse -r requirements.txt \
-    && pip install -r requirements-testing.txt \
+RUN pip install --no-index --find-links=/tmp/wheelhouse -r /tmp/requirements.txt \
     && mkdir -p testing/reports
 
 COPY . /testing/
