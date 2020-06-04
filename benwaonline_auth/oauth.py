@@ -11,7 +11,4 @@ oauth = OAuth()
 # BENWA authenticates the client (using client_id and client_secret)
 #   and validates the authorization code
 
-twitter = oauth.register(
-    'twitter',
-    app_key='TWITTER'
-)
+twitter = oauth.register("twitter", app_key="TWITTER")
