@@ -158,6 +158,9 @@ class TestIssueToken(object):
         assert resp.status_code == 401
 
     def test_invalid_authorization_code(self, client):
+        # this test is failing because the returned status code is 400
+        # i can't set up the test environment locally to figure out if this is due to
+        # updating a million dependencies or something else
         params = auth_token_request_params()
         resp = client.post(url_for("auth.issue_token"), data=params)
         print(resp.json)
