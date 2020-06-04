@@ -160,6 +160,7 @@ class TestIssueToken(object):
     def test_invalid_authorization_code(self, client):
         params = auth_token_request_params()
         resp = client.post(url_for("auth.issue_token"), data=params)
+        print(resp.json)
         assert resp.status_code == 401
 
     # Could do a whole series of cache related tests
