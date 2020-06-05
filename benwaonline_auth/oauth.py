@@ -1,4 +1,4 @@
-from flask_oauthlib.client import OAuth
+from authlib.integrations.flask_client import OAuth
 
 oauth = OAuth()
 
@@ -11,7 +11,4 @@ oauth = OAuth()
 # BENWA authenticates the client (using client_id and client_secret)
 #   and validates the authorization code
 
-twitter = oauth.remote_app(
-    'twitter',
-    app_key='TWITTER'
-)
+twitter = oauth.register("twitter", app_key="TWITTER")
